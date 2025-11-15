@@ -1,0 +1,242 @@
+import { Server as HTTPServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import { getRandomWord } from './words';
+
+interface Player {
+  id: string;
+  name: string;
+  isImpostor?: boolean;
+  word?: string;
+}
+
+interface GameRoom {
+  players: Player[];
+  gameStarted: boolean;
+  gamePhase: 'lobby' | 'playing' | 'voting' | 'results';
+  category?: string;
+  customWords?: string[];
+  impostorId?: string;
+  votes: Record<string, string>;
+  word?: string;
+}
+
+const rooms = new Map<string, GameRoom>();
+
+function createRoom(): string {
+  const roomId = Math.random().toString(36).substring(2, 8);
+  rooms.set(roomId, {
+    players: [],
+    gameStarted: false,
+    gamePhase: 'lobby',
+    votes: {},
+  });
+  return roomId;
+}
+
+function getOrCreateRoom(): string {
+  // Pro jednoduchost použijeme jednu globální místnost
+  // V produkci by bylo lepší mít více místností
+  const defaultRoomId = 'default';
+  if (!rooms.has(defaultRoomId)) {
+    rooms.set(defaultRoomId, {
+      players: [],
+      gameStarted: false,
+      gamePhase: 'lobby',
+      votes: {},
+    });
+  }
+  return defaultRoomId;
+}
+
+export function initializeSocketServer(server: HTTPServer) {
+  const io = new SocketIOServer(server, {
+    cors: {
+      origin: process.env.NEXT_PUBLIC_URL || 'http://localhost:3000',
+      methods: ['GET', 'POST'],
+    },
+  });
+
+  io.on('connection', (socket) => {
+    const roomId = getOrCreateRoom();
+    const room = rooms.get(roomId)!;
+
+    socket.on('joinGame', ({ name }: { name: string }) => {
+      if (room.players.length >= 5) {
+        socket.emit('error', { message: 'Místnost je plná!' });
+        return;
+      }
+
+      if (room.players.some((p) => p.id === socket.id)) {
+        return;
+      }
+
+      room.players.push({
+        id: socket.id,
+        name,
+      });
+
+      socket.join(roomId);
+      io.to(roomId).emit('gameState', {
+        players: room.players,
+        gameStarted: room.gameStarted,
+        gamePhase: room.gamePhase,
+        category: room.category,
+        customWords: room.customWords,
+        impostorId: room.impostorId,
+        votes: room.votes,
+      });
+    });
+
+    socket.on('startGame', ({ category, customWords }: { category?: string; customWords?: string[] }) => {
+      if (room.players.length !== 5) {
+        socket.emit('error', { message: 'Musí být přesně 5 hráčů!' });
+        return;
+      }
+
+      if (room.gameStarted) {
+        return;
+      }
+
+      // Vyber náhodného impostora
+      const impostorIndex = Math.floor(Math.random() * 5);
+      const impostor = room.players[impostorIndex];
+      room.impostorId = impostor.id;
+
+      // Vygeneruj slovo
+      const word = getRandomWord(category || '', customWords);
+      room.word = word;
+      room.category = category;
+      room.customWords = customWords;
+
+      // Přiřaď slova hráčům
+      room.players.forEach((player) => {
+        if (player.id === impostor.id) {
+          player.isImpostor = true;
+          player.word = undefined;
+        } else {
+          player.isImpostor = false;
+          player.word = word;
+        }
+      });
+
+      room.gameStarted = true;
+      room.gamePhase = 'playing';
+      room.votes = {};
+
+      // Pošli každému hráči jeho informace
+      room.players.forEach((player) => {
+        io.to(player.id).emit('wordAssigned', {
+          word: player.word,
+          isImpostor: player.isImpostor,
+        });
+      });
+
+      io.to(roomId).emit('gameState', {
+        players: room.players,
+        gameStarted: room.gameStarted,
+        gamePhase: room.gamePhase,
+        category: room.category,
+        customWords: room.customWords,
+        impostorId: room.impostorId,
+        votes: room.votes,
+      });
+    });
+
+    socket.on('startVoting', () => {
+      if (room.gamePhase === 'playing') {
+        room.gamePhase = 'voting';
+        room.votes = {};
+        io.to(roomId).emit('gameState', {
+          players: room.players,
+          gameStarted: room.gameStarted,
+          gamePhase: room.gamePhase,
+          category: room.category,
+          customWords: room.customWords,
+          impostorId: room.impostorId,
+          votes: room.votes,
+        });
+      }
+    });
+
+    socket.on('vote', ({ votedForId }: { votedForId: string }) => {
+      if (room.gamePhase === 'voting' && !room.votes[socket.id]) {
+        room.votes[socket.id] = votedForId;
+        io.to(roomId).emit('gameState', {
+          players: room.players,
+          gameStarted: room.gameStarted,
+          gamePhase: room.gamePhase,
+          category: room.category,
+          customWords: room.customWords,
+          impostorId: room.impostorId,
+          votes: room.votes,
+        });
+
+        // Pokud všichni hlasovali, přejdi na výsledky
+        if (Object.keys(room.votes).length === room.players.length) {
+          setTimeout(() => {
+            room.gamePhase = 'results';
+            io.to(roomId).emit('gameState', {
+              players: room.players,
+              gameStarted: room.gameStarted,
+              gamePhase: room.gamePhase,
+              category: room.category,
+              customWords: room.customWords,
+              impostorId: room.impostorId,
+              votes: room.votes,
+            });
+          }, 2000);
+        }
+      }
+    });
+
+    socket.on('nextRound', () => {
+      // Reset hry
+      room.gameStarted = false;
+      room.gamePhase = 'lobby';
+      room.impostorId = undefined;
+      room.word = undefined;
+      room.votes = {};
+      room.players.forEach((player) => {
+        player.isImpostor = undefined;
+        player.word = undefined;
+      });
+
+      io.to(roomId).emit('gameState', {
+        players: room.players,
+        gameStarted: room.gameStarted,
+        gamePhase: room.gamePhase,
+        category: room.category,
+        customWords: room.customWords,
+        impostorId: room.impostorId,
+        votes: room.votes,
+      });
+    });
+
+    socket.on('disconnect', () => {
+      room.players = room.players.filter((p) => p.id !== socket.id);
+      socket.leave(roomId);
+
+      // Pokud je místnost prázdná, resetuj ji
+      if (room.players.length === 0) {
+        room.gameStarted = false;
+        room.gamePhase = 'lobby';
+        room.impostorId = undefined;
+        room.word = undefined;
+        room.votes = {};
+      }
+
+      io.to(roomId).emit('gameState', {
+        players: room.players,
+        gameStarted: room.gameStarted,
+        gamePhase: room.gamePhase,
+        category: room.category,
+        customWords: room.customWords,
+        impostorId: room.impostorId,
+        votes: room.votes,
+      });
+    });
+  });
+
+  return io;
+}
+
