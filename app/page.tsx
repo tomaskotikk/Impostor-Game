@@ -110,6 +110,8 @@ export default function Home() {
         if (state.roomCode) {
           setRoomCode(state.roomCode);
         }
+        
+        // Změna fáze hry
         if (state.gamePhase === 'lobby') {
           setView('lobby');
           setVotedFor(null);
@@ -118,7 +120,8 @@ export default function Home() {
           setView('playing');
         } else if (state.gamePhase === 'voting') {
           setView('voting');
-          setVotedFor(null);
+          // NERESTARTOVAT votedFor při změně na voting!
+          // setVotedFor(null); <-- ODSTRAŇTE TOTO
         } else if (state.gamePhase === 'results') {
           setView('results');
         }
@@ -237,15 +240,25 @@ export default function Home() {
   };
 
   const vote = async (votedForId: string) => {
-    if (roomCode && playerId && !votedFor) {
+    if (roomCode && playerId) {
       try {
-        await fetch('/api/game/vote', {
+        // Nastavit votedFor PŘED voláním API
+        setVotedFor(votedForId);
+        
+        const response = await fetch('/api/game/vote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ roomCode, playerId, votedForId }),
         });
-        setVotedFor(votedForId);
+        
+        if (!response.ok) {
+          // Pokud selže, resetuj votedFor
+          setVotedFor(null);
+          setError('Chyba při hlasování');
+        }
       } catch (err) {
+        // Pokud selže, resetuj votedFor
+        setVotedFor(null);
         setError('Chyba při hlasování');
       }
     }

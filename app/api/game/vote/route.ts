@@ -32,13 +32,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (room.votes[playerId]) {
-      return NextResponse.json(
-        { error: 'Už jsi hlasoval!' },
-        { status: 400 }
-      );
-    }
-
+    // Povolit přehlasování (změnu hlasu)
     room.votes[playerId] = votedForId;
 
     // Broadcast game state to room
@@ -54,25 +48,25 @@ export async function POST(request: NextRequest) {
       maxPlayers: room.maxPlayers,
     });
 
-    // Pokud všichni hlasovali, přejdi na výsledky
+    // Pokud všichni hlasovali, OKAMŽITĚ přejdi na výsledky
     if (Object.keys(room.votes).length === room.players.length) {
-      setTimeout(async () => {
-        room.gamePhase = 'results';
-        await pusherServer.trigger(`room-${normalizedRoomCode}`, 'gameState', {
-          players: room.players,
-          gameStarted: room.gameStarted,
-          gamePhase: room.gamePhase,
-          category: room.category,
-          customWords: room.customWords,
-          impostorId: room.impostorId,
-          votes: room.votes,
-          roomCode: normalizedRoomCode,
-          maxPlayers: room.maxPlayers,
-        });
-      }, 2000);
+      room.gamePhase = 'results';
+      
+      // Okamžité vyhodnocení
+      await pusherServer.trigger(`room-${normalizedRoomCode}`, 'gameState', {
+        players: room.players,
+        gameStarted: room.gameStarted,
+        gamePhase: 'results',
+        category: room.category,
+        customWords: room.customWords,
+        impostorId: room.impostorId,
+        votes: room.votes,
+        roomCode: normalizedRoomCode,
+        maxPlayers: room.maxPlayers,
+      });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, votes: room.votes });
   } catch (error) {
     console.error('Error voting:', error);
     return NextResponse.json(
@@ -81,4 +75,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

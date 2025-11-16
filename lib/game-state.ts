@@ -138,6 +138,11 @@ export interface Player {
     return rooms.get(roomCode);
   }
   
+  // PŘIDÁNO: Funkce pro aktualizaci místnosti
+  export function updateRoom(roomCode: string, room: GameRoom): void {
+    rooms.set(roomCode, room);
+  }
+  
   export function getAllRooms(): Map<string, GameRoom> {
     return rooms;
   }
