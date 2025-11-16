@@ -1,11 +1,3 @@
 {
-  "/page": "app/page.js",
-  "/api/rooms/create/route": "app/api/rooms/create/route.js",
-  "/api/pusher/auth/route": "app/api/pusher/auth/route.js",
-  "/api/rooms/state/route": "app/api/rooms/state/route.js",
-  "/api/rooms/join/route": "app/api/rooms/join/route.js",
-  "/api/game/start/route": "app/api/game/start/route.js",
-  "/api/game/start-voting/route": "app/api/game/start-voting/route.js",
-  "/api/game/vote/route": "app/api/game/vote/route.js",
-  "/api/game/next-round/route": "app/api/game/next-round/route.js"
+  "/page": "app/page.js"
 }
