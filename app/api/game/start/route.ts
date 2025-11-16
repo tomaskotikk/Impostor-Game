@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRoom, getRandomWord } from '@/lib/game-state';
+import { getRoom, getRandomWord, generateSpeakingOrder } from '@/lib/game-state';
 import { pusherServer } from '@/lib/pusher';
 
 export const dynamic = 'force-dynamic';
@@ -66,8 +66,13 @@ export async function POST(request: NextRequest) {
     room.category = category;
     room.customWords = customWords;
 
-    // Přiřaď slova hráčům
-    room.players.forEach((player) => {
+    // Vygeneruj náhodné pořadí mluvení
+    const speakingOrder = generateSpeakingOrder(room.maxPlayers);
+
+    // Přiřaď slova a pořadí hráčům
+    room.players.forEach((player, index) => {
+      player.speakingOrder = speakingOrder[index];
+      
       if (player.id === impostor.id) {
         player.isImpostor = true;
         player.word = undefined;
@@ -86,6 +91,7 @@ export async function POST(request: NextRequest) {
       await pusherServer.trigger(`private-player-${player.id}`, 'wordAssigned', {
         word: player.word,
         isImpostor: player.isImpostor,
+        speakingOrder: player.speakingOrder,
       });
     }
 
@@ -111,4 +117,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

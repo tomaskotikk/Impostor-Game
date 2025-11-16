@@ -9,6 +9,7 @@ interface Player {
   isImpostor?: boolean;
   word?: string;
   votes?: number;
+  speakingOrder?: number;
 }
 
 interface GameState {
@@ -135,7 +136,7 @@ export default function Home() {
           console.log('✅ Subscribed to private channel:', playerId);
         });
 
-        privateChannel.bind('wordAssigned', (data: { word: string; isImpostor: boolean }) => {
+        privateChannel.bind('wordAssigned', (data: { word: string; isImpostor: boolean; speakingOrder?: number }) => {
           if (!data.isImpostor && data.word) {
             setShowWord(true);
           }
@@ -168,7 +169,6 @@ export default function Home() {
         if (response.ok) {
           setRoomCode(data.roomCode);
           setPlayerId(data.playerId);
-          // Explicitně nastav view na lobby
           setView('lobby');
         } else {
           setError(data.error || 'Chyba při vytváření místnosti');
@@ -192,7 +192,6 @@ export default function Home() {
         if (response.ok) {
           setRoomCode(inputRoomCode.trim().toUpperCase());
           setPlayerId(data.playerId);
-          // Explicitně nastav view na lobby
           setView('lobby');
         } else {
           setError(data.error || 'Chyba při připojování');
@@ -382,7 +381,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Zbytek kódu zůstává stejný... */}
         {view === 'create' && (
           <div className="max-w-xl mx-auto">
             <button
@@ -499,7 +497,7 @@ export default function Home() {
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-8">
               <div className="flex items-center justify-between mb-6 sm:mb-8">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold mb-0.5 sm:mb-1">Čekárna 🕐</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold mb-0.5 sm:mb-1">Čekárna 🕒</h2>
                   <p className="text-xs sm:text-sm text-zinc-400">
                     Čeká se na {(gameState.maxPlayers || 5) - gameState.players.length} 
                     {(gameState.maxPlayers || 5) - gameState.players.length === 1 ? ' hráče' : ' hráče'}
@@ -656,6 +654,12 @@ export default function Home() {
                     <h3 className="text-2xl sm:text-3xl font-bold text-red-400 mb-2 sm:mb-3">TY JSI IMPOSTOR! 🎭</h3>
                     <p className="text-sm sm:text-base text-zinc-400">Snaž se zjistit slovo, aniž bys to prozradil 🕵️‍♂️</p>
                   </div>
+                  {currentPlayer.speakingOrder && (
+                    <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
+                      <p className="text-sm text-zinc-400 mb-1">Pořadí mluvení</p>
+                      <p className="text-3xl font-bold text-red-400">🎲 Mluvíš jako {currentPlayer.speakingOrder}.</p>
+                    </div>
+                  )}
                 </div>
               ) : showWord && currentPlayer?.word ? (
                 <div className="space-y-4 sm:space-y-6">
@@ -663,6 +667,12 @@ export default function Home() {
                   <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-6 sm:p-12">
                     <p className="text-2xl sm:text-5xl font-bold break-words hyphens-auto" lang="cs">{currentPlayer.word}</p>
                   </div>
+                  {currentPlayer.speakingOrder && (
+                    <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
+                      <p className="text-sm text-zinc-400 mb-1">Pořadí mluvení</p>
+                      <p className="text-3xl font-bold text-purple-400">🎲 Mluvíš jako {currentPlayer.speakingOrder}.</p>
+                    </div>
+                  )}
                   <p className="text-sm sm:text-base text-zinc-400">Diskutuj s ostatními a najdi impostora 🎯</p>
                 </div>
               ) : (
