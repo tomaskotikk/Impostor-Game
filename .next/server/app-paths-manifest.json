@@ -1,3 +1,6 @@
 {
-  "/page": "app/page.js"
+  "/api/rooms/create/route": "app/api/rooms/create/route.js",
+  "/page": "app/page.js",
+  "/api/pusher/auth/route": "app/api/pusher/auth/route.js",
+  "/api/rooms/state/route": "app/api/rooms/state/route.js"
 }

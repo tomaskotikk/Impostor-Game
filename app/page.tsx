@@ -32,6 +32,8 @@ const categories = [
   { id: 'streamers-foreign', name: '📺 Streamery Zahraniční', description: 'xQc, Pokimane, Shroud...' },
   { id: 'clash-royale', name: '👑 Clash Royale', description: 'Karty, postavy, arény...' },
   { id: 'movies', name: '🎬 Filmy', description: 'Pulp Fiction, Avatar, Titanic...' },
+  { id: 'ceske-filmy', name: '🇨🇿 České filmy', description: 'Pelíšky, Kolja, Samotáři...' },
+  { id: 'pohadky', name: '🧚 Pohádky', description: 'Tři oříšky pro Popelku, Pyšná princezna...' },
   { id: 'tv-shows', name: '📺 Seriály', description: 'Přátelé, Hra o trůny, Breaking Bad...' },
   { id: 'celebrities', name: '🌟 Celebrity', description: 'Herci, zpěváci, influenceři...' },
   { id: 'games', name: '🎮 Hry', description: 'Minecraft, GTA, Fortnite...' },
@@ -161,6 +163,11 @@ export default function Home() {
 
   const createRoom = async () => {
     if (playerName.trim() && maxPlayers) {
+      if (playerName.trim().length > 16) {
+        setError('Nick může mít maximálně 16 znaků');
+        setTimeout(() => setError(''), 5000);
+        return;
+      }
       setError('');
       try {
         const response = await fetch('/api/rooms/create', {
@@ -184,6 +191,11 @@ export default function Home() {
 
   const joinRoom = async () => {
     if (playerName.trim() && inputRoomCode.trim()) {
+      if (playerName.trim().length > 16) {
+        setError('Nick může mít maximálně 16 znaků');
+        setTimeout(() => setError(''), 5000);
+        return;
+      }
       setError('');
       try {
         const response = await fetch('/api/rooms/join', {
@@ -417,6 +429,7 @@ export default function Home() {
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
                     placeholder="Zadejte své jméno"
+                    maxLength={16}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     onKeyPress={(e) => e.key === 'Enter' && createRoom()}
                   />
@@ -476,6 +489,7 @@ export default function Home() {
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
                     placeholder="Zadejte své jméno"
+                    maxLength={16}
                     className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
