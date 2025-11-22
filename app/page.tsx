@@ -36,6 +36,7 @@ const categories = [
   { id: 'pohadky', name: '🧚 Pohádky', description: 'Tři oříšky pro Popelku, Pyšná princezna...' },
   { id: 'tv-shows', name: '📺 Seriály', description: 'Přátelé, Hra o trůny, Breaking Bad...' },
   { id: 'celebrities', name: '🌟 Celebrity', description: 'Herci, zpěváci, influenceři...' },
+  { id: 'jidlo', name: '🍣 Jídlo', description: 'Ovoce, Zelenina , Celá jídla...' },
   { id: 'games', name: '🎮 Hry', description: 'Minecraft, GTA, Fortnite...' },
   { id: 'superheroes', name: '🦸 Superhrdinové', description: 'Superman, Batman, Wonder Woman...' },
 ];
