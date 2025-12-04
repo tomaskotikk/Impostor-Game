@@ -27,18 +27,143 @@ interface GameState {
 type View = 'menu' | 'create' | 'join' | 'lobby' | 'playing' | 'voting' | 'results';
 
 const categories = [
-  { id: 'rappers-foreign', name: '🎤 Rappeři Zahraniční', description: 'Eminem, Snoop Dogg, Drake...' },
-  { id: 'streamers-czsk', name: '📺 Streamery CZ/SK', description: 'Coconut, Gejmr, Stazid...' },
-  { id: 'streamers-foreign', name: '📺 Streamery Zahraniční', description: 'xQc, Pokimane, Shroud...' },
-  { id: 'clash-royale', name: '👑 Clash Royale', description: 'Karty, postavy, arény...' },
-  { id: 'movies', name: '🎬 Filmy', description: 'Pulp Fiction, Avatar, Titanic...' },
-  { id: 'ceske-filmy', name: '🇨🇿 České filmy', description: 'Pelíšky, Kolja, Samotáři...' },
-  { id: 'pohadky', name: '🧚 Pohádky', description: 'Tři oříšky pro Popelku, Pyšná princezna...' },
-  { id: 'tv-shows', name: '📺 Seriály', description: 'Přátelé, Hra o trůny, Breaking Bad...' },
-  { id: 'celebrities', name: '🌟 Celebrity', description: 'Herci, zpěváci, influenceři...' },
-  { id: 'games', name: '🎮 Hry', description: 'Minecraft, GTA, Fortnite...' },
-  { id: 'superheroes', name: '🦸 Superhrdinové', description: 'Superman, Batman, Wonder Woman...' },
+  { id: 'rappers-foreign', name: 'Rappeři Zahraniční', description: 'Eminem, Snoop Dogg, Drake...', icon: 'mic' },
+  { id: 'streamers-czsk', name: 'Streamery CZ/SK', description: 'Coconut, Gejmr, Stazid...', icon: 'monitor' },
+  { id: 'streamers-foreign', name: 'Streamery Zahraniční', description: 'xQc, Pokimane, Shroud...', icon: 'monitor' },
+  { id: 'clash-royale', name: 'Clash Royale', description: 'Karty, postavy, arény...', icon: 'crown' },
+  { id: 'movies', name: 'Filmy', description: 'Pulp Fiction, Avatar, Titanic...', icon: 'film' },
+  { id: 'ceske-filmy', name: 'České filmy', description: 'Pelíšky, Kolja, Samotáři...', icon: 'film' },
+  { id: 'pohadky', name: 'Pohádky', description: 'Tři oříšky pro Popelku, Pyšná princezna...', icon: 'sparkles' },
+  { id: 'tv-shows', name: 'Seriály', description: 'Přátelé, Hra o trůny, Breaking Bad...', icon: 'tv' },
+  { id: 'celebrities', name: 'Celebrity', description: 'Herci, zpěváci, influenceři...', icon: 'star' },
+  { id: 'jidlo', name: 'Jídlo', description: 'Ovoce, Zelenina , Celá jídla...', icon: 'utensils' },
+  { id: 'games', name: 'Hry', description: 'Minecraft, GTA, Fortnite...', icon: 'gamepad' },
+  { id: 'superheroes', name: 'Superhrdinové', description: 'Superman, Batman, Wonder Woman...', icon: 'shield' },
 ];
+
+// Icon component helper
+const Icon = ({ name, className = "w-5 h-5" }: { name: string; className?: string }) => {
+  const icons: Record<string, JSX.Element> = {
+    mask: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    mic: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+      </svg>
+    ),
+    monitor: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+    crown: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+      </svg>
+    ),
+    film: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+      </svg>
+    ),
+    sparkles: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+      </svg>
+    ),
+    tv: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+    star: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+      </svg>
+    ),
+    utensils: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+      </svg>
+    ),
+    gamepad: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.751 9.75l3.501 3.5L21 12l-2.748-2.25L14.751 9.75zM9.25 9.75L5.75 13.25 3 12l2.748-2.25L9.25 9.75zM9.25 14.25l-3.5-3.5L3 12l2.748 2.25L9.25 14.25zM14.751 14.25l3.501-3.5L21 12l-2.748 2.25-3.501 3.5z" />
+      </svg>
+    ),
+    shield: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+    ),
+    edit: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    ),
+    detective: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    ),
+    clock: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    check: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    ),
+    target: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    ),
+    vote: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    trophy: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+      </svg>
+    ),
+    refresh: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+    ),
+    dice: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    ),
+    play: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    users: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+    user: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+    ),
+  };
+
+  return icons[name] || null;
+};
 
 export default function Home() {
   const [pusher, setPusher] = useState<Pusher | null>(null);
@@ -318,35 +443,34 @@ export default function Home() {
   const isHost = gameState.players.length > 0 && gameState.players[0].id === playerId;
 
   return (
-    <main className="min-h-screen bg-[#0f0f10] text-white">
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
       {/* Header */}
-      <div className="border-b border-zinc-800 bg-[#0f0f10]/95 backdrop-blur-sm sticky top-0 z-50">
+      <div className="border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50 shadow-lg shadow-black/20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center font-bold text-base sm:text-lg">
-              🎭
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/20">
+              <Icon name="mask" className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-bold">Impostor Game</h1>
-              <span className="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full font-semibold">BETA</span>
+              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">Impostor Game</h1>
+              <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold border border-red-500/30">BETA</span>
             </div>
           </div>
           {roomCode && (
             <div className="flex items-center gap-1 sm:gap-2">
-              <span className="text-xs sm:text-sm text-zinc-400 hidden sm:inline">Místnost:</span>
-              <code className="px-2 sm:px-3 py-1 sm:py-1.5 bg-zinc-800 rounded-lg font-mono text-xs sm:text-sm font-bold tracking-wider">
+              <span className="text-xs sm:text-sm text-slate-400 hidden sm:inline">Místnost:</span>
+              <code className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-800/50 border border-slate-700/50 rounded-lg font-mono text-xs sm:text-sm font-bold tracking-wider text-slate-200">
                 {roomCode}
               </code>
               <button
                 onClick={copyRoomCode}
-                className="p-1.5 sm:p-2 hover:bg-zinc-800 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-slate-800/50 rounded-lg transition-colors"
+                aria-label="Kopírovat kód místnosti"
               >
                 {copied ? (
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <Icon name="check" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
                 ) : (
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 )}
@@ -358,8 +482,8 @@ export default function Home() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {error && (
-          <div className="mb-4 sm:mb-6 bg-red-500/10 border border-red-500/20 text-red-400 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm flex items-center gap-2">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mb-4 sm:mb-6 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm flex items-center gap-2 backdrop-blur-sm">
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             {error}
@@ -370,37 +494,38 @@ export default function Home() {
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8 sm:mb-12">
               <div className="flex items-center justify-center gap-3 mb-4">
-                
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl shadow-purple-500/30">
+                  <Icon name="mask" className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                </div>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3">Impostor Game</h2>
-              <p className="text-sm sm:text-base text-zinc-400">Najdi impostora mezi přáteli! 🕵️‍♂️</p>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-slate-100 via-slate-200 to-slate-300 bg-clip-text text-transparent">Impostor Game</h2>
+              <p className="text-sm sm:text-base text-slate-400 flex items-center justify-center gap-2">
+                <Icon name="detective" className="w-4 h-4" />
+                Najdi impostora mezi přáteli!
+              </p>
             </div>
             
             <div className="grid gap-3 sm:gap-4">
               <button
                 onClick={() => setView('create')}
-                className="group bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-xl p-6 sm:p-8 transition-all text-left"
+                className="group bg-slate-900/50 hover:bg-slate-800/50 border border-slate-800 hover:border-slate-700 rounded-xl p-6 sm:p-8 transition-all text-left backdrop-blur-sm hover:shadow-lg hover:shadow-purple-500/10"
               >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mb-3 sm:mb-4 group-hover:bg-purple-500/20 transition-colors">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
+                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 group-hover:bg-indigo-500/20 flex items-center justify-center mb-4 transition-colors">
+                  <Icon name="play" className="w-6 h-6 text-indigo-400" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">Vytvořit místnost</h3>
-                <p className="text-xs sm:text-sm text-zinc-400">Založte novou hru a pozvěte přátele</p>
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 text-slate-200">Vytvořit místnost</h3>
+                <p className="text-xs sm:text-sm text-slate-400">Založte novou hru a pozvěte přátele</p>
               </button>
 
               <button
                 onClick={() => setView('join')}
-                className="group bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-xl p-6 sm:p-8 transition-all text-left"
+                className="group bg-slate-900/50 hover:bg-slate-800/50 border border-slate-800 hover:border-slate-700 rounded-xl p-6 sm:p-8 transition-all text-left backdrop-blur-sm hover:shadow-lg hover:shadow-blue-500/10"
               >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3 sm:mb-4 group-hover:bg-blue-500/20 transition-colors">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 group-hover:bg-blue-500/20 flex items-center justify-center mb-4 transition-colors">
+                  <Icon name="users" className="w-6 h-6 text-blue-400" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">Připojit se</h3>
-                <p className="text-xs sm:text-sm text-zinc-400">Vstupte do existující místnosti</p>
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 text-slate-200">Připojit se</h3>
+                <p className="text-xs sm:text-sm text-slate-400">Vstupte do existující místnosti</p>
               </button>
             </div>
           </div>
@@ -410,42 +535,48 @@ export default function Home() {
           <div className="max-w-xl mx-auto">
             <button
               onClick={() => setView('menu')}
-              className="mb-4 sm:mb-6 text-xs sm:text-sm text-zinc-400 hover:text-white flex items-center gap-2 transition-colors"
+              className="mb-4 sm:mb-6 text-sm text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-colors"
             >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Zpět
             </button>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 sm:p-8">
-              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Vytvořit místnost</h2>
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 sm:p-8 backdrop-blur-sm">
+              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-slate-200">Vytvořit místnost</h2>
               
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-2 text-zinc-300">Vaše jméno</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-300 flex items-center gap-2">
+                    <Icon name="user" className="w-4 h-4" />
+                    Vaše jméno
+                  </label>
                   <input
                     type="text"
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
                     placeholder="Zadejte své jméno"
                     maxLength={16}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 text-base bg-slate-800/50 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-slate-200 placeholder-slate-500"
                     onKeyPress={(e) => e.key === 'Enter' && createRoom()}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-2 sm:mb-3 text-zinc-300">Počet hráčů</label>
-                  <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
+                  <label className="block text-sm font-medium mb-3 text-slate-300 flex items-center gap-2">
+                    <Icon name="users" className="w-4 h-4" />
+                    Počet hráčů
+                  </label>
+                  <div className="grid grid-cols-6 gap-2">
                     {[3, 4, 5, 6, 7, 8].map((num) => (
                       <button
                         key={num}
                         onClick={() => setMaxPlayers(num)}
-                        className={`py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg font-semibold text-sm sm:text-base transition-all ${
+                        className={`py-3 px-4 rounded-lg font-semibold text-base transition-all ${
                           maxPlayers === num
-                            ? 'bg-purple-500 text-white'
-                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white'
+                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 border border-slate-700/50'
                         }`}
                       >
                         {num}
@@ -457,7 +588,7 @@ export default function Home() {
                 <button
                   onClick={createRoom}
                   disabled={!playerName.trim()}
-                  className="w-full bg-purple-500 hover:bg-purple-600 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-semibold py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-all disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-semibold py-3 text-base rounded-lg transition-all disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
                 >
                   Vytvořit místnost
                 </button>
@@ -470,39 +601,45 @@ export default function Home() {
           <div className="max-w-xl mx-auto">
             <button
               onClick={() => setView('menu')}
-              className="mb-4 sm:mb-6 text-xs sm:text-sm text-zinc-400 hover:text-white flex items-center gap-2 transition-colors"
+              className="mb-4 sm:mb-6 text-sm text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-colors"
             >
-              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Zpět
             </button>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 sm:p-8">
-              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Připojit se</h2>
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 sm:p-8 backdrop-blur-sm">
+              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-slate-200">Připojit se</h2>
               
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-2 text-zinc-300">Vaše jméno</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-300 flex items-center gap-2">
+                    <Icon name="user" className="w-4 h-4" />
+                    Vaše jméno
+                  </label>
                   <input
                     type="text"
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
                     placeholder="Zadejte své jméno"
                     maxLength={16}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 text-base bg-slate-800/50 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-slate-200 placeholder-slate-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium mb-2 text-zinc-300">Kód místnosti</label>
+                  <label className="block text-sm font-medium mb-2 text-slate-300 flex items-center gap-2">
+                    <Icon name="target" className="w-4 h-4" />
+                    Kód místnosti
+                  </label>
                   <input
                     type="text"
                     value={inputRoomCode}
                     onChange={(e) => setInputRoomCode(e.target.value.toUpperCase())}
                     placeholder="ABCD"
                     maxLength={4}
-                    className="w-full px-3 sm:px-4 py-3 sm:py-4 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-center text-xl sm:text-2xl font-mono font-bold tracking-[0.3em] sm:tracking-[0.5em] uppercase"
+                    className="w-full px-4 py-4 bg-slate-800/50 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-center text-2xl font-mono font-bold tracking-[0.5em] uppercase text-slate-200"
                     onKeyPress={(e) => e.key === 'Enter' && joinRoom()}
                   />
                 </div>
@@ -510,7 +647,7 @@ export default function Home() {
                 <button
                   onClick={joinRoom}
                   disabled={!playerName.trim() || !inputRoomCode.trim()}
-                  className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-semibold py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-all disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-semibold py-3 text-base rounded-lg transition-all disabled:cursor-not-allowed shadow-lg shadow-blue-500/20"
                 >
                   Připojit se
                 </button>
@@ -521,61 +658,71 @@ export default function Home() {
 
         {view === 'lobby' && (
           <div className="max-w-4xl mx-auto">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-8">
-              <div className="flex items-center justify-between mb-6 sm:mb-8">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-8 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold mb-0.5 sm:mb-1">Čekárna 🕒</h2>
-                  <p className="text-xs sm:text-sm text-zinc-400">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-1 text-slate-200 flex items-center gap-2">
+                    <Icon name="clock" className="w-5 h-5 text-slate-400" />
+                    Čekárna
+                  </h2>
+                  <p className="text-sm text-slate-400">
                     Čeká se na {(gameState.maxPlayers || 5) - gameState.players.length} 
                     {(gameState.maxPlayers || 5) - gameState.players.length === 1 ? ' hráče' : ' hráče'}
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl sm:text-3xl font-bold">{gameState.players.length}/{gameState.maxPlayers || 5}</div>
-                  <div className="text-xs sm:text-sm text-zinc-400">Hráči</div>
+                <div className="text-right bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3">
+                  <div className="text-3xl font-bold text-slate-200">{gameState.players.length}/{gameState.maxPlayers || 5}</div>
+                  <div className="text-xs text-slate-400 flex items-center gap-1 justify-end">
+                    <Icon name="users" className="w-3 h-3" />
+                    Hráči
+                  </div>
                 </div>
               </div>
 
-              <div className="grid gap-2 sm:gap-3 mb-6 sm:mb-8">
+              <div className="grid gap-3 mb-8">
                 {Array.from({ length: gameState.maxPlayers || 5 }).map((_, index) => {
                   const player = gameState.players[index];
                   return (
                     <div
                       key={index}
-                      className={`p-3 sm:p-4 rounded-lg border transition-all ${
+                      className={`p-4 rounded-lg border transition-all ${
                         player
                           ? player.id === playerId
-                            ? 'bg-purple-500/10 border-purple-500/30'
-                            : 'bg-zinc-800 border-zinc-700'
-                          : 'bg-zinc-900 border-zinc-800 border-dashed'
+                            ? 'bg-indigo-500/10 border-indigo-500/30'
+                            : 'bg-slate-800/50 border-slate-700/50'
+                          : 'bg-slate-900/30 border-slate-800 border-dashed'
                       }`}
                     >
                       {player ? (
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-lg shadow-purple-500/20">
                             {player.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-sm sm:text-base flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                              <span className="truncate">{player.name}</span>
+                            <div className="font-semibold text-base flex items-center gap-2 flex-wrap">
+                              <span className="truncate text-slate-200">{player.name}</span>
                               {player.id === playerId && (
-                                <span className="text-[10px] sm:text-xs bg-purple-500/20 text-purple-400 px-1.5 sm:px-2 py-0.5 rounded flex-shrink-0">Ty</span>
+                                <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full flex-shrink-0 border border-indigo-500/30">Ty</span>
                               )}
                               {index === 0 && (
-                                <span className="text-[10px] sm:text-xs bg-yellow-500/20 text-yellow-400 px-1.5 sm:px-2 py-0.5 rounded flex-shrink-0">Host 👑</span>
+                                <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full flex-shrink-0 border border-amber-500/30 flex items-center gap-1">
+                                  <Icon name="crown" className="w-3 h-3" />
+                                  Host
+                                </span>
                               )}
                             </div>
-                            <div className="text-[10px] sm:text-xs text-zinc-500">Připraven ✅</div>
+                            <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                              <Icon name="check" className="w-3 h-3" />
+                              Připraven
+                            </div>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 sm:gap-3 text-zinc-600">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg border-2 border-dashed border-zinc-700 flex items-center justify-center flex-shrink-0">
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
+                        <div className="flex items-center gap-3 text-slate-600">
+                          <div className="w-10 h-10 rounded-xl border-2 border-dashed border-slate-700 flex items-center justify-center flex-shrink-0">
+                            <Icon name="user" className="w-5 h-5" />
                           </div>
-                          <span className="text-xs sm:text-sm">Čeká se na hráče...</span>
+                          <span className="text-sm">Čeká se na hráče...</span>
                         </div>
                       )}
                     </div>
@@ -584,30 +731,30 @@ export default function Home() {
               </div>
 
               {isHost && (
-                <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-zinc-800">
+                <div className="space-y-4 pt-6 border-t border-slate-800">
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-2 text-zinc-300">Výběr kategorie</label>
+                    <label className="block text-sm font-medium mb-3 text-slate-300">Výběr kategorie</label>
                     
                     {/* Vlastní slova karta */}
                     <div
                       onClick={() => setSelectedCategory('')}
-                      className={`p-3 sm:p-4 rounded-lg border cursor-pointer transition-all mb-2 ${
+                      className={`p-4 rounded-lg border cursor-pointer transition-all mb-3 ${
                         !selectedCategory
-                          ? 'bg-purple-500/10 border-purple-500/30'
-                          : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700'
+                          ? 'bg-indigo-500/10 border-indigo-500/30'
+                          : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0 ${
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                           !selectedCategory
-                            ? 'bg-purple-500 text-white'
-                            : 'bg-zinc-700 text-zinc-400'
+                            ? 'bg-indigo-500 text-white'
+                            : 'bg-slate-700 text-slate-400'
                         }`}>
-                          ✏️
+                          <Icon name="edit" className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-sm sm:text-base">Vlastní slova</div>
-                          <div className="text-[10px] sm:text-xs text-zinc-500">Zadejte vlastní slova oddělená čárkou</div>
+                          <div className="font-semibold text-base text-slate-200">Vlastní slova</div>
+                          <div className="text-xs text-slate-500">Zadejte vlastní slova oddělená čárkou</div>
                         </div>
                       </div>
                     </div>
@@ -620,12 +767,15 @@ export default function Home() {
                           onClick={() => setSelectedCategory(category.id)}
                           className={`p-3 rounded-lg border cursor-pointer transition-all ${
                             selectedCategory === category.id
-                              ? 'bg-purple-500/10 border-purple-500/30'
-                              : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700'
+                              ? 'bg-indigo-500/10 border-indigo-500/30'
+                              : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50'
                           }`}
                         >
-                          <div className="font-semibold text-xs sm:text-sm mb-1">{category.name}</div>
-                          <div className="text-[10px] text-zinc-500">{category.description}</div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Icon name={category.icon} className="w-4 h-4 text-slate-400" />
+                            <div className="font-semibold text-sm text-slate-200">{category.name}</div>
+                          </div>
+                          <div className="text-xs text-slate-500">{category.description}</div>
                         </div>
                       ))}
                     </div>
@@ -634,7 +784,7 @@ export default function Home() {
                   {/* Vlastní slova input - zobrazí se pouze pokud není vybrána kategorie */}
                   {!selectedCategory && (
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium mb-2 text-zinc-300">
+                      <label className="block text-sm font-medium mb-2 text-slate-300">
                         Vlastní slova (min. {gameState.maxPlayers || 5})
                       </label>
                       <input
@@ -642,9 +792,9 @@ export default function Home() {
                         value={customWords}
                         onChange={(e) => setCustomWords(e.target.value)}
                         placeholder="Pes, Kočka, Pták, Slon, Medvěd..."
-                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                        className="w-full px-4 py-3 text-base bg-slate-800/50 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-200 placeholder-slate-500"
                       />
-                      <p className="text-[10px] sm:text-xs text-zinc-500 mt-1.5 sm:mt-2">Oddělte slova čárkou</p>
+                      <p className="text-xs text-slate-500 mt-2">Oddělte slova čárkou</p>
                     </div>
                   )}
 
@@ -654,12 +804,19 @@ export default function Home() {
                       gameState.players.length !== (gameState.maxPlayers || 5) ||
                       (!selectedCategory && (!customWords.trim() || customWords.split(',').filter(w => w.trim()).length < (gameState.maxPlayers || 5)))
                     }
-                    className="w-full bg-green-500 hover:bg-green-600 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-semibold py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-all disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-semibold py-3 text-base rounded-lg transition-all disabled:cursor-not-allowed shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
                   >
-                    {gameState.players.length === (gameState.maxPlayers || 5) 
-                      ? '🎮 Spustit hru' 
-                      : `⏳ Čeká se na hráče (${gameState.players.length}/${gameState.maxPlayers || 5})`
-                    }
+                    {gameState.players.length === (gameState.maxPlayers || 5) ? (
+                      <>
+                        <Icon name="play" className="w-5 h-5" />
+                        Spustit hru
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="clock" className="w-5 h-5" />
+                        Čeká se na hráče ({gameState.players.length}/{gameState.maxPlayers || 5})
+                      </>
+                    )}
                   </button>
                 </div>
               )}
@@ -671,62 +828,91 @@ export default function Home() {
           <div className="max-w-2xl mx-auto text-center">
             {/* Kategorie - viditelná pro všechny */}
             {(gameState.category || gameState.customWords) && (
-              <div className="mb-6 bg-zinc-800/50 border border-zinc-700 rounded-xl p-4">
-                <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Kategorie</p>
-                <p className="text-lg font-bold text-purple-400">
-                  {gameState.category 
-                    ? categories.find(c => c.id === gameState.category)?.name || '🎯 Kategorie'
-                    : '✏️ Vlastní slova'
-                  }
+              <div className="mb-6 bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 backdrop-blur-sm">
+                <p className="text-xs text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-center gap-2">
+                  <Icon name="target" className="w-3 h-3" />
+                  Kategorie
+                </p>
+                <p className="text-lg font-bold text-indigo-400 flex items-center justify-center gap-2">
+                  {gameState.category ? (
+                    <>
+                      <Icon name={categories.find(c => c.id === gameState.category)?.icon || 'target'} className="w-5 h-5" />
+                      {categories.find(c => c.id === gameState.category)?.name || 'Kategorie'}
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="edit" className="w-5 h-5" />
+                      Vlastní slova
+                    </>
+                  )}
                 </p>
               </div>
             )}
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 sm:p-12">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 sm:p-12 backdrop-blur-sm">
               {currentPlayer?.isImpostor ? (
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-red-500/10 border-2 border-red-500/50 flex items-center justify-center">
-                    <svg className="w-8 h-8 sm:w-10 sm:h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="space-y-6">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-red-500/10 border-2 border-red-500/30 flex items-center justify-center">
+                    <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-red-400 mb-2 sm:mb-3">TY JSI IMPOSTOR! 🎭</h3>
-                    <p className="text-sm sm:text-base text-zinc-400">Snaž se zjistit slovo z kategorie výše, aniž bys to prozradil 🕵️‍♂️</p>
+                    <h3 className="text-3xl font-bold text-red-400 mb-3 flex items-center justify-center gap-2">
+                      <Icon name="mask" className="w-8 h-8" />
+                      TY JSI IMPOSTOR!
+                    </h3>
+                    <p className="text-base text-slate-400 flex items-center justify-center gap-2">
+                      <Icon name="detective" className="w-4 h-4" />
+                      Snaž se zjistit slovo z kategorie výše, aniž bys to prozradil
+                    </p>
                   </div>
                   {currentPlayer.speakingOrder && (
-                    <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-                      <p className="text-sm text-zinc-400 mb-1">Pořadí mluvení</p>
-                      <p className="text-3xl font-bold text-red-400">🎲 Mluvíš jako {currentPlayer.speakingOrder}.</p>
+                    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+                      <p className="text-sm text-slate-400 mb-1 flex items-center justify-center gap-2">
+                        <Icon name="dice" className="w-4 h-4" />
+                        Pořadí mluvení
+                      </p>
+                      <p className="text-3xl font-bold text-red-400">Mluvíš jako {currentPlayer.speakingOrder}.</p>
                     </div>
                   )}
                 </div>
               ) : showWord && currentPlayer?.word ? (
-                <div className="space-y-4 sm:space-y-6">
-                  <p className="text-zinc-400 text-xs sm:text-sm uppercase tracking-wider">Tvé slovo</p>
-                  <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-6 sm:p-12">
-                    <p className="text-2xl sm:text-5xl font-bold break-words hyphens-auto" lang="cs">{currentPlayer.word}</p>
+                <div className="space-y-6">
+                  <p className="text-slate-400 text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                    <Icon name="target" className="w-4 h-4" />
+                    Tvé slovo
+                  </p>
+                  <div className="bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20 rounded-xl p-8 sm:p-12 backdrop-blur-sm">
+                    <p className="text-3xl sm:text-5xl font-bold break-words hyphens-auto text-slate-100" lang="cs">{currentPlayer.word}</p>
                   </div>
                   {currentPlayer.speakingOrder && (
-                    <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4">
-                      <p className="text-sm text-zinc-400 mb-1">Pořadí mluvení</p>
-                      <p className="text-3xl font-bold text-purple-400">🎲 Mluvíš jako {currentPlayer.speakingOrder}.</p>
+                    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+                      <p className="text-sm text-slate-400 mb-1 flex items-center justify-center gap-2">
+                        <Icon name="dice" className="w-4 h-4" />
+                        Pořadí mluvení
+                      </p>
+                      <p className="text-3xl font-bold text-indigo-400">Mluvíš jako {currentPlayer.speakingOrder}.</p>
                     </div>
                   )}
-                  <p className="text-sm sm:text-base text-zinc-400">Diskutuj s ostatními a najdi impostora 🎯</p>
+                  <p className="text-base text-slate-400 flex items-center justify-center gap-2">
+                    <Icon name="detective" className="w-4 h-4" />
+                    Diskutuj s ostatními a najdi impostora
+                  </p>
                 </div>
               ) : (
-                <div className="py-6 sm:py-8">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-zinc-700 border-t-purple-500 rounded-full animate-spin mx-auto mb-3 sm:mb-4"></div>
-                  <p className="text-sm sm:text-base text-zinc-400">Načítání...</p>
+                <div className="py-8">
+                  <div className="w-16 h-16 border-4 border-slate-700 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-base text-slate-400">Načítání...</p>
                 </div>
               )}
               {isHost && (
                 <button
                   onClick={startVoting}
-                  className="mt-6 sm:mt-8 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2.5 sm:py-3 px-6 sm:px-8 text-sm sm:text-base rounded-lg transition-all"
+                  className="mt-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 px-8 text-base rounded-lg transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 mx-auto"
                 >
-                  🗳️ Začít hlasování
+                  <Icon name="vote" className="w-5 h-5" />
+                  Začít hlasování
                 </button>
               )}
             </div>
@@ -735,13 +921,19 @@ export default function Home() {
 
         {view === 'voting' && (
           <div className="max-w-2xl mx-auto">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-8">
-              <div className="text-center mb-6 sm:mb-8">
-                <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Hlasování 🗳️</h2>
-                <p className="text-sm sm:text-base text-zinc-400">Kdo si myslíš, že je impostor? 🕵️‍♂️</p>
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-8 backdrop-blur-sm">
+              <div className="text-center mb-8">
+                <h2 className="text-xl sm:text-2xl font-bold mb-2 text-slate-200 flex items-center justify-center gap-2">
+                  <Icon name="vote" className="w-6 h-6" />
+                  Hlasování
+                </h2>
+                <p className="text-base text-slate-400 flex items-center justify-center gap-2">
+                  <Icon name="detective" className="w-4 h-4" />
+                  Kdo si myslíš, že je impostor?
+                </p>
               </div>
               
-              <div className="space-y-2 sm:space-y-3">
+              <div className="space-y-3">
                 {gameState.players
                   .filter((p) => p.id !== playerId)
                   .map((player) => {
@@ -751,23 +943,23 @@ export default function Home() {
                         key={player.id}
                         onClick={() => vote(player.id)}
                         disabled={!!votedFor}
-                        className={`w-full p-3 sm:p-4 rounded-lg text-left transition-all border ${
+                        className={`w-full p-4 rounded-lg text-left transition-all border ${
                           votedFor === player.id
-                            ? 'bg-green-500/10 border-green-500/30'
+                            ? 'bg-emerald-500/10 border-emerald-500/30'
                             : votedFor
-                            ? 'bg-zinc-800/50 border-zinc-700/50 opacity-50 cursor-not-allowed'
-                            : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700 active:bg-zinc-700'
+                            ? 'bg-slate-800/30 border-slate-700/30 opacity-50 cursor-not-allowed'
+                            : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50 active:bg-slate-700/50'
                         }`}
                       >
                         <div className="flex justify-between items-center gap-2">
-                          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-lg shadow-purple-500/20">
                               {player.name.charAt(0).toUpperCase()}
                             </div>
-                            <span className="font-semibold text-sm sm:text-base truncate">{player.name}</span>
+                            <span className="font-semibold text-base truncate text-slate-200">{player.name}</span>
                           </div>
                           {voteCount > 0 && (
-                            <span className="text-xs sm:text-sm bg-zinc-700 px-2 sm:px-3 py-1 rounded-full flex-shrink-0">
+                            <span className="text-sm bg-slate-700/50 px-3 py-1 rounded-full flex-shrink-0 text-slate-300 border border-slate-600/50">
                               {voteCount} {voteCount === 1 ? 'hlas' : 'hlasy'}
                             </span>
                           )}
@@ -778,8 +970,9 @@ export default function Home() {
               </div>
               
               {votedFor && (
-                <div className="mt-4 sm:mt-6 text-center bg-zinc-800 rounded-lg p-3 sm:p-4">
-                  <p className="text-zinc-400 text-xs sm:text-sm">
+                <div className="mt-6 text-center bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                  <p className="text-slate-400 text-sm flex items-center justify-center gap-2">
+                    <Icon name="vote" className="w-4 h-4" />
                     Hlasovalo: {Object.keys(gameState.votes).length}/{gameState.players.length}
                   </p>
                 </div>
@@ -790,43 +983,49 @@ export default function Home() {
 
         {view === 'results' && (
           <div className="max-w-2xl mx-auto">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 sm:p-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-center mb-6 sm:mb-8">Výsledky 🏆</h2>
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-8 backdrop-blur-sm">
+              <h2 className="text-xl sm:text-2xl font-bold text-center mb-8 text-slate-200 flex items-center justify-center gap-2">
+                <Icon name="trophy" className="w-6 h-6" />
+                Výsledky
+              </h2>
               
-              <div className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
+              <div className="space-y-3 mb-8">
                 {gameState.players.map((player) => {
                   const voteCount = Object.values(gameState.votes).filter((v) => v === player.id).length;
                   return (
                     <div
                       key={player.id}
-                      className={`p-3 sm:p-4 rounded-lg border ${
+                      className={`p-4 rounded-lg border ${
                         player.isImpostor
                           ? 'bg-red-500/10 border-red-500/30'
-                          : 'bg-zinc-800 border-zinc-700'
+                          : 'bg-slate-800/50 border-slate-700/50'
                       }`}
                     >
                       <div className="flex justify-between items-center gap-3">
-                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0 ${
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0 ${
                             player.isImpostor 
-                              ? 'bg-gradient-to-br from-red-500 to-red-700' 
-                              : 'bg-gradient-to-br from-purple-500 to-pink-600'
+                              ? 'bg-gradient-to-br from-red-500 to-red-700 shadow-lg shadow-red-500/20' 
+                              : 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-purple-500/20'
                           }`}>
                             {player.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-semibold text-sm sm:text-base break-all">{player.name}</span>
+                              <span className="font-semibold text-base break-all text-slate-200">{player.name}</span>
                               {player.id === playerId && (
-                                <span className="text-[10px] sm:text-xs bg-purple-500/20 text-purple-400 px-1.5 sm:px-2 py-0.5 rounded flex-shrink-0">Ty</span>
+                                <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full flex-shrink-0 border border-indigo-500/30">Ty</span>
                               )}
                               {player.isImpostor && (
-                                <span className="text-[10px] sm:text-xs bg-red-500/20 text-red-400 px-1.5 sm:px-2 py-0.5 rounded font-semibold flex-shrink-0">IMPOSTOR 🎭</span>
+                                <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold flex-shrink-0 border border-red-500/30 flex items-center gap-1">
+                                  <Icon name="mask" className="w-3 h-3" />
+                                  IMPOSTOR
+                                </span>
                               )}
                             </div>
                           </div>
                         </div>
-                        <span className="text-xs sm:text-sm bg-zinc-700 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">
+                        <span className="text-sm bg-slate-700/50 px-3 py-1 rounded-full whitespace-nowrap text-slate-300 border border-slate-600/50">
                           {voteCount} {voteCount === 1 ? 'hlas' : 'hlasy'}
                         </span>
                       </div>
@@ -838,9 +1037,10 @@ export default function Home() {
               {isHost && (
                 <button
                   onClick={nextRound}
-                  className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-all"
+                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 text-base rounded-lg transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
                 >
-                  🔄 Nová hra
+                  <Icon name="refresh" className="w-5 h-5" />
+                  Nová hra
                 </button>
               )}
             </div>
