@@ -193,6 +193,9 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState<number>(5);
   const [showHelp, setShowHelp] = useState(false);
+  const [showImpostor, setShowImpostor] = useState(false);
+  const [confettiActive, setConfettiActive] = useState(false);
+  const [confettiType, setConfettiType] = useState<'green' | 'red' | 'blue' | null>(null);
 
   // Initialize Pusher
   useEffect(() => {
@@ -257,6 +260,40 @@ export default function Home() {
           // setVotedFor(null); <-- ODSTRAŇTE TOTO
         } else if (state.gamePhase === 'results') {
           setView('results');
+          setShowImpostor(false);
+          setConfettiActive(false);
+          setConfettiType(null);
+          // Spustit animaci po 2 sekundách
+          setTimeout(() => {
+            setShowImpostor(true);
+            // Určit typ konfet
+            const impostor = state.players.find(p => p.isImpostor);
+            if (impostor) {
+              const impostorVotes = Object.values(state.votes).filter(v => v === impostor.id).length;
+              const maxVotes = Math.max(...state.players.map(p => 
+                Object.values(state.votes).filter(v => v === p.id).length
+              ));
+              const isTie = state.players.filter(p => 
+                Object.values(state.votes).filter(v => v === p.id).length === maxVotes
+              ).length > 1;
+              
+              // Pokud remíza
+              if (isTie) {
+                setConfettiType('blue');
+              } 
+              // Pokud má impostor nejvíc hlasů = uhodnut
+              else if (impostorVotes === maxVotes && impostorVotes > 0) {
+                setConfettiType('green');
+              } else {
+                // Impostor neuhodnut
+                setConfettiType('blue');
+              }
+            }
+            // Spustit konfety po další 0.5s
+            setTimeout(() => {
+              setConfettiActive(true);
+            }, 500);
+          }, 2000);
         }
         
         const currentPlayer = state.players.find(p => p.id === playerId);
@@ -447,6 +484,55 @@ export default function Home() {
 
   const currentPlayer = gameState.players.find(p => p.id === playerId);
   const isHost = gameState.players.length > 0 && gameState.players[0].id === playerId;
+
+  // Konfety komponenta
+  const Confetti = ({ type, forPlayer }: { type: 'green' | 'red' | 'blue'; forPlayer?: boolean }) => {
+    const colors = {
+      green: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0'],
+      red: ['#ef4444', '#f87171', '#fca5a5', '#fecaca'],
+      blue: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
+    };
+
+    const count = forPlayer ? 30 : 80;
+    const confettiPieces = Array.from({ length: count }, (_, i) => {
+      const left = Math.random() * 100;
+      const delay = Math.random() * 2;
+      const duration = 3 + Math.random() * 2;
+      const color = colors[type][Math.floor(Math.random() * colors[type].length)];
+      const size = 8 + Math.random() * 6;
+      const rotation = Math.random() * 360;
+
+      return (
+        <div
+          key={i}
+          className="absolute pointer-events-none"
+          style={{
+            left: `${left}%`,
+            top: forPlayer ? '50%' : '-10px',
+            width: `${size}px`,
+            height: `${size}px`,
+            backgroundColor: color,
+            borderRadius: '50%',
+            animation: `confetti-fall ${duration}s ${delay}s ease-out forwards`,
+            transform: `rotate(${rotation}deg)`,
+          }}
+        />
+      );
+    });
+
+    return <div className={`${forPlayer ? 'absolute' : 'fixed'} inset-0 pointer-events-none z-[1000] overflow-hidden`}>{confettiPieces}</div>;
+  };
+
+  // Určení výsledku hry
+  const impostor = gameState.players.find(p => p.isImpostor);
+  const impostorVotes = impostor ? Object.values(gameState.votes).filter(v => v === impostor.id).length : 0;
+  const maxVotes = gameState.players.length > 0 
+    ? Math.max(...gameState.players.map(p => Object.values(gameState.votes).filter(v => v === p.id).length))
+    : 0;
+  const impostorCaught = impostor && impostorVotes === maxVotes && impostorVotes > 0;
+  const isTie = maxVotes > 0 && gameState.players.filter(p => 
+    Object.values(gameState.votes).filter(v => v === p.id).length === maxVotes
+  ).length > 1;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
@@ -998,76 +1084,83 @@ export default function Home() {
 
         {view === 'results' && (
           <div className="max-w-2xl mx-auto">
+            {confettiActive && confettiType === 'blue' && <Confetti type="blue" />}
+            
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-8 backdrop-blur-sm">
-              <div className="relative overflow-hidden mb-6 rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-600/30 via-purple-600/30 to-pink-600/30 p-4 sm:p-5">
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute -left-6 top-2 w-10 h-10 bg-white/20 rounded-full blur-2xl animate-pulse"></div>
-                  <div className="absolute right-4 -top-4 w-14 h-14 bg-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="animate-ping inline-flex h-3 w-3 rounded-full bg-emerald-400/70"></span>
-                    <p className="text-sm text-emerald-200 font-semibold">Impostor odhalen!</p>
-                  </div>
-                  <div className="flex items-center gap-2 text-lg">
-                    <span className="animate-bounce">🎉</span>
-                    <span className="animate-bounce delay-150">✨</span>
-                    <span className="animate-bounce delay-300">🎭</span>
-                  </div>
-                </div>
-              </div>
-
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-8 text-slate-200 flex items-center justify-center gap-2">
                 <Icon name="trophy" className="w-6 h-6" />
                 Výsledky
               </h2>
               
               <div className="space-y-3 mb-8">
-                {gameState.players.map((player) => {
-                  const voteCount = Object.values(gameState.votes).filter((v) => v === player.id).length;
-                  return (
-                    <div
-                      key={player.id}
-                      className={`p-4 rounded-lg border ${
-                        player.isImpostor
-                          ? 'bg-red-500/10 border-red-500/30'
-                          : 'bg-slate-800/50 border-slate-700/50'
-                      }`}
-                    >
-                      <div className="flex justify-between items-center gap-3">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0 ${
-                            player.isImpostor 
-                              ? 'bg-gradient-to-br from-red-500 to-red-700 shadow-lg shadow-red-500/20' 
-                              : 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-purple-500/20'
-                          }`}>
-                            {player.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-semibold text-base break-all text-slate-200">{player.name}</span>
-                              {player.id === playerId && (
-                                <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full flex-shrink-0 border border-indigo-500/30">Ty</span>
-                              )}
-                              {player.isImpostor && (
-                                <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold flex-shrink-0 border border-red-500/30 flex items-center gap-1">
-                                  <Icon name="mask" className="w-3 h-3" />
-                                  IMPOSTOR
-                                </span>
-                              )}
+                {gameState.players
+                  .filter(player => !player.isImpostor || showImpostor)
+                  .map((player) => {
+                    const voteCount = Object.values(gameState.votes).filter((v) => v === player.id).length;
+                    const isImpostor = player.isImpostor;
+                    // Červené konfety pro impostora, pokud byl uhodnut
+                    const showPlayerConfetti = confettiActive && isImpostor && confettiType === 'green';
+                    // Zelené konfety pro občany, pokud byl impostor uhodnut
+                    const showCitizenConfetti = confettiActive && !isImpostor && confettiType === 'green';
+                    
+                    return (
+                      <div
+                        key={player.id}
+                        className={`p-4 rounded-lg border transition-all duration-500 relative ${
+                          isImpostor && showImpostor
+                            ? 'bg-red-500/10 border-red-500/30 animate-pulse'
+                            : 'bg-slate-800/50 border-slate-700/50'
+                        } ${isImpostor && !showImpostor ? 'opacity-0 h-0 p-0 overflow-hidden' : ''}`}
+                        style={{
+                          animation: isImpostor && showImpostor ? 'slideIn 0.6s ease-out' : undefined,
+                        }}
+                      >
+                        {showPlayerConfetti && <Confetti type="red" forPlayer={true} />}
+                        {showCitizenConfetti && <Confetti type="green" forPlayer={true} />}
+                        <div className="flex justify-between items-center gap-3 relative z-10">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0 transition-all duration-500 ${
+                              isImpostor && showImpostor
+                                ? 'bg-gradient-to-br from-red-500 to-red-700 shadow-lg shadow-red-500/20 scale-110'
+                                : 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-purple-500/20'
+                            }`}>
+                              {player.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-semibold text-base break-all text-slate-200">{player.name}</span>
+                                {player.id === playerId && (
+                                  <span className="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full flex-shrink-0 border border-indigo-500/30">Ty</span>
+                                )}
+                                {isImpostor && showImpostor && (
+                                  <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold flex-shrink-0 border border-red-500/30 flex items-center gap-1 animate-pulse">
+                                    <Icon name="mask" className="w-3 h-3" />
+                                    IMPOSTOR
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
+                          <span className="text-sm bg-slate-700/50 px-3 py-1 rounded-full whitespace-nowrap text-slate-300 border border-slate-600/50">
+                            {voteCount} {voteCount === 1 ? 'hlas' : 'hlasy'}
+                          </span>
                         </div>
-                        <span className="text-sm bg-slate-700/50 px-3 py-1 rounded-full whitespace-nowrap text-slate-300 border border-slate-600/50">
-                          {voteCount} {voteCount === 1 ? 'hlas' : 'hlasy'}
-                        </span>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
+
+              {!showImpostor && (
+                <div className="text-center py-4">
+                  <div className="inline-flex items-center gap-2 text-slate-400">
+                    <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                </div>
+              )}
               
-              {isHost && (
+              {isHost && showImpostor && (
                 <button
                   onClick={nextRound}
                   className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 text-base rounded-lg transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
