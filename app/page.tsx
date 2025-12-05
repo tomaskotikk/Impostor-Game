@@ -266,7 +266,7 @@ export default function Home() {
           // Spustit animaci po 2 sekundách
           setTimeout(() => {
             setShowImpostor(true);
-            // Určit typ konfet
+            // Určit typ konfet podle výsledku
             const impostor = state.players.find(p => p.isImpostor);
             if (impostor) {
               const impostorVotes = Object.values(state.votes).filter(v => v === impostor.id).length;
@@ -281,12 +281,13 @@ export default function Home() {
               if (isTie) {
                 setConfettiType('blue');
               } 
-              // Pokud má impostor nejvíc hlasů = uhodnut
+              // Pokud má impostor nejvíc hlasů = uhodnut (impostor prohrál)
               else if (impostorVotes === maxVotes && impostorVotes > 0) {
-                setConfettiType('green');
+                // Impostor prohrál - pro něj červené, pro ostatní zelené
+                setConfettiType('green'); // green = impostor uhodnut
               } else {
-                // Impostor neuhodnut
-                setConfettiType('blue');
+                // Impostor neuhodnut (impostor vyhrál) - pro něj zelené, pro ostatní červené
+                setConfettiType('red'); // red = impostor neuhodnut
               }
             }
             // Spustit konfety po další 0.5s
@@ -485,54 +486,70 @@ export default function Home() {
   const currentPlayer = gameState.players.find(p => p.id === playerId);
   const isHost = gameState.players.length > 0 && gameState.players[0].id === playerId;
 
-  // Konfety komponenta
-  const Confetti = ({ type, forPlayer }: { type: 'green' | 'red' | 'blue'; forPlayer?: boolean }) => {
+  // Konfety komponenta - přes celou obrazovku
+  const Confetti = ({ type }: { type: 'green' | 'red' | 'blue' }) => {
     const colors = {
-      green: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0'],
-      red: ['#ef4444', '#f87171', '#fca5a5', '#fecaca'],
-      blue: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
+      green: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#22c55e', '#4ade80'],
+      red: ['#ef4444', '#f87171', '#fca5a5', '#fecaca', '#dc2626', '#f43f5e'],
+      blue: ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#2563eb', '#1d4ed8'],
     };
 
-    const count = forPlayer ? 30 : 80;
-    const confettiPieces = Array.from({ length: count }, (_, i) => {
+    // Více konfet pro lepší efekt
+    const confettiPieces = Array.from({ length: 120 }, (_, i) => {
       const left = Math.random() * 100;
-      const delay = Math.random() * 2;
+      const delay = Math.random() * 1.5;
       const duration = 3 + Math.random() * 2;
       const color = colors[type][Math.floor(Math.random() * colors[type].length)];
-      const size = 8 + Math.random() * 6;
+      const size = 6 + Math.random() * 8;
       const rotation = Math.random() * 360;
+      const horizontalDrift = (Math.random() - 0.5) * 30; // Boční drift
 
       return (
         <div
           key={i}
-          className="absolute pointer-events-none"
+          className="fixed pointer-events-none"
           style={{
             left: `${left}%`,
-            top: forPlayer ? '50%' : '-10px',
+            top: '-20px',
             width: `${size}px`,
             height: `${size}px`,
             backgroundColor: color,
-            borderRadius: '50%',
+            borderRadius: Math.random() > 0.5 ? '50%' : '0%', // Některé kulaté, některé čtvercové
             animation: `confetti-fall ${duration}s ${delay}s ease-out forwards`,
             transform: `rotate(${rotation}deg)`,
-          }}
+            '--drift': `${horizontalDrift}px`,
+          } as React.CSSProperties}
         />
       );
     });
 
-    return <div className={`${forPlayer ? 'absolute' : 'fixed'} inset-0 pointer-events-none z-[1000] overflow-hidden`}>{confettiPieces}</div>;
+    return <div className="fixed inset-0 pointer-events-none z-[1000] overflow-hidden">{confettiPieces}</div>;
   };
 
-  // Určení výsledku hry
+  // Určení výsledku hry a typu konfet pro aktuálního hráče
   const impostor = gameState.players.find(p => p.isImpostor);
+  const currentPlayerIsImpostor = currentPlayer?.isImpostor || false;
   const impostorVotes = impostor ? Object.values(gameState.votes).filter(v => v === impostor.id).length : 0;
   const maxVotes = gameState.players.length > 0 
     ? Math.max(...gameState.players.map(p => Object.values(gameState.votes).filter(v => v === p.id).length))
     : 0;
-  const impostorCaught = impostor && impostorVotes === maxVotes && impostorVotes > 0;
   const isTie = maxVotes > 0 && gameState.players.filter(p => 
     Object.values(gameState.votes).filter(v => v === p.id).length === maxVotes
   ).length > 1;
+  
+  // Určit typ konfet pro aktuálního hráče
+  let playerConfettiType: 'green' | 'red' | 'blue' | null = null;
+  if (confettiActive && confettiType) {
+    if (confettiType === 'blue') {
+      playerConfettiType = 'blue'; // Remíza - modré pro všechny
+    } else if (confettiType === 'green') {
+      // Impostor uhodnut
+      playerConfettiType = currentPlayerIsImpostor ? 'red' : 'green';
+    } else if (confettiType === 'red') {
+      // Impostor neuhodnut
+      playerConfettiType = currentPlayerIsImpostor ? 'green' : 'red';
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
@@ -1083,10 +1100,10 @@ export default function Home() {
         )}
 
         {view === 'results' && (
-          <div className="max-w-2xl mx-auto">
-            {confettiActive && confettiType === 'blue' && <Confetti type="blue" />}
+          <div className="max-w-2xl mx-auto relative">
+            {playerConfettiType && <Confetti type={playerConfettiType} />}
             
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-8 backdrop-blur-sm">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-8 backdrop-blur-sm relative z-10">
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-8 text-slate-200 flex items-center justify-center gap-2">
                 <Icon name="trophy" className="w-6 h-6" />
                 Výsledky
@@ -1098,15 +1115,11 @@ export default function Home() {
                   .map((player) => {
                     const voteCount = Object.values(gameState.votes).filter((v) => v === player.id).length;
                     const isImpostor = player.isImpostor;
-                    // Červené konfety pro impostora, pokud byl uhodnut
-                    const showPlayerConfetti = confettiActive && isImpostor && confettiType === 'green';
-                    // Zelené konfety pro občany, pokud byl impostor uhodnut
-                    const showCitizenConfetti = confettiActive && !isImpostor && confettiType === 'green';
                     
                     return (
                       <div
                         key={player.id}
-                        className={`p-4 rounded-lg border transition-all duration-500 relative ${
+                        className={`p-4 rounded-lg border transition-all duration-500 ${
                           isImpostor && showImpostor
                             ? 'bg-red-500/10 border-red-500/30 animate-pulse'
                             : 'bg-slate-800/50 border-slate-700/50'
@@ -1115,8 +1128,6 @@ export default function Home() {
                           animation: isImpostor && showImpostor ? 'slideIn 0.6s ease-out' : undefined,
                         }}
                       >
-                        {showPlayerConfetti && <Confetti type="red" forPlayer={true} />}
-                        {showCitizenConfetti && <Confetti type="green" forPlayer={true} />}
                         <div className="flex justify-between items-center gap-3 relative z-10">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0 transition-all duration-500 ${

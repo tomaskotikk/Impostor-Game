@@ -37,11 +37,14 @@ body {
 /* Confetti animation */
 @keyframes confetti-fall {
   0% {
-    transform: translateY(-10px) rotate(0deg);
+    transform: translateY(-20px) translateX(0) rotate(0deg);
     opacity: 1;
   }
+  50% {
+    transform: translateY(calc(50vh)) translateX(calc(var(--drift, 0px) * 0.5)) rotate(360deg);
+  }
   100% {
-    transform: translateY(100vh) rotate(720deg);
+    transform: translateY(calc(100vh + 20px)) translateX(var(--drift, 0px)) rotate(720deg);
     opacity: 0;
   }
 }
