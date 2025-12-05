@@ -967,31 +967,31 @@ export default function Home() {
               </div>
             )}
 
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 sm:p-12 backdrop-blur-sm">
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-6 md:p-12 backdrop-blur-sm">
               {currentPlayer?.isImpostor ? (
-                <div className="space-y-6">
-                  <div className="w-20 h-20 mx-auto rounded-full bg-red-500/10 border-2 border-red-500/30 flex items-center justify-center">
-                    <svg className="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-red-500/10 border-2 border-red-500/30 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-8 h-8 sm:w-10 sm:h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                   </div>
-                  <div>
-                    <h3 className="text-3xl font-bold text-red-400 mb-3 flex items-center justify-center gap-2">
-                      <Icon name="mask" className="w-8 h-8" />
-                      TY JSI IMPOSTOR!
+                  <div className="text-center px-2">
+                    <h3 className="text-2xl sm:text-3xl font-bold text-red-400 mb-2 sm:mb-3 flex items-center justify-center gap-2 flex-wrap">
+                      <Icon name="mask" className="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0" />
+                      <span className="break-words">TY JSI IMPOSTOR!</span>
                     </h3>
-                    <p className="text-base text-slate-400 flex items-center justify-center gap-2">
-                      <Icon name="detective" className="w-4 h-4" />
-                      Snaž se zjistit slovo z kategorie výše, aniž bys to prozradil
+                    <p className="text-sm sm:text-base text-slate-400 flex items-center justify-center gap-2 flex-wrap px-2">
+                      <Icon name="detective" className="w-4 h-4 flex-shrink-0" />
+                      <span className="break-words">Snaž se zjistit slovo z kategorie výše, aniž bys to prozradil</span>
                     </p>
                   </div>
                   {currentPlayer.speakingOrder && (
-                    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-                      <p className="text-sm text-slate-400 mb-1 flex items-center justify-center gap-2">
-                        <Icon name="dice" className="w-4 h-4" />
-                        Pořadí mluvení
+                    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-4">
+                      <p className="text-xs sm:text-sm text-slate-400 mb-1 flex items-center justify-center gap-2">
+                        <Icon name="dice" className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span>Pořadí mluvení</span>
                       </p>
-                      <p className="text-3xl font-bold text-red-400">Mluvíš jako {currentPlayer.speakingOrder}.</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-red-400 text-center break-words">Mluvíš jako {currentPlayer.speakingOrder}.</p>
                     </div>
                   )}
                 </div>
@@ -1168,6 +1168,47 @@ export default function Home() {
                     <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     <div className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                   </div>
+                </div>
+              )}
+
+              {/* Výsledek hry */}
+              {showImpostor && (
+                <div className="mb-6 sm:mb-8">
+                  {(() => {
+                    const impostor = gameState.players.find(p => p.isImpostor);
+                    if (!impostor) return null;
+                    
+                    const impostorVotes = Object.values(gameState.votes).filter(v => v === impostor.id).length;
+                    const maxVotes = Math.max(...gameState.players.map(p => 
+                      Object.values(gameState.votes).filter(v => v === p.id).length
+                    ));
+                    const isTie = gameState.players.filter(p => 
+                      Object.values(gameState.votes).filter(v => v === p.id).length === maxVotes
+                    ).length > 1;
+                    
+                    if (isTie) {
+                      return (
+                        <div className="text-center p-4 sm:p-6 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                          <p className="text-lg sm:text-xl font-bold text-blue-400">Remíza!</p>
+                          <p className="text-sm sm:text-base text-slate-300 mt-1">Nikdo nevyhrál</p>
+                        </div>
+                      );
+                    } else if (impostorVotes === maxVotes && impostorVotes > 0) {
+                      return (
+                        <div className="text-center p-4 sm:p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                          <p className="text-lg sm:text-xl font-bold text-emerald-400">Vyhráli normální hráči!</p>
+                          <p className="text-sm sm:text-base text-slate-300 mt-1">Impostor byl odhalen</p>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div className="text-center p-4 sm:p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
+                          <p className="text-lg sm:text-xl font-bold text-red-400">Vyhrál IMPOSTOR!</p>
+                          <p className="text-sm sm:text-base text-slate-300 mt-1">Impostor nebyl odhalen</p>
+                        </div>
+                      );
+                    }
+                  })()}
                 </div>
               )}
               
