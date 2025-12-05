@@ -158,7 +158,6 @@ export interface Player {
   'How I Met Your Mother','Big Bang Theory','Peaky Blinders','Narcos','Vikings',
   'Black Mirror','Westworld','Better Call Saul','Chernobyl','The Last of Us',
   'Brooklyn Nine-Nine','Rick and Morty','True Detective','Dexter','Sons of Anarchy',
-
   'The Sopranos','Fargo','The Wire','Succession','Ozark',
   'Mindhunter','Dark','Arcane','Euphoria','Mr. Robot',
   'The Haunting of Hill House','The Haunting of Bly Manor','The Sandman','Loki','WandaVision',

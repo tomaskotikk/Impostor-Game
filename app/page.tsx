@@ -160,6 +160,11 @@ const Icon = ({ name, className = "w-5 h-5" }: { name: string; className?: strin
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
     ),
+    help: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10a4 4 0 118 0c0 1.657-1.5 2.5-2.5 3.5-.5.5-.5 1-.5 1.5M12 18h.01" />
+      </svg>
+    ),
   };
 
   return icons[name] || null;
@@ -187,6 +192,7 @@ export default function Home() {
   const [error, setError] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState<number>(5);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Initialize Pusher
   useEffect(() => {
@@ -453,30 +459,39 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">Impostor Game</h1>
-              <span className="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold border border-red-500/30">BETA</span>
             </div>
           </div>
-          {roomCode && (
-            <div className="flex items-center gap-1 sm:gap-2">
-              <span className="text-xs sm:text-sm text-slate-400 hidden sm:inline">Místnost:</span>
-              <code className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-800/50 border border-slate-700/50 rounded-lg font-mono text-xs sm:text-sm font-bold tracking-wider text-slate-200">
-                {roomCode}
-              </code>
-              <button
-                onClick={copyRoomCode}
-                className="p-1.5 sm:p-2 hover:bg-slate-800/50 rounded-lg transition-colors"
-                aria-label="Kopírovat kód místnosti"
-              >
-                {copied ? (
-                  <Icon name="check" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
-                ) : (
-                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {roomCode && (
+              <div className="flex items-center gap-1 sm:gap-2">
+                <span className="text-xs sm:text-sm text-slate-400 hidden sm:inline">Místnost:</span>
+                <code className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-800/50 border border-slate-700/50 rounded-lg font-mono text-xs sm:text-sm font-bold tracking-wider text-slate-200">
+                  {roomCode}
+                </code>
+                <button
+                  onClick={copyRoomCode}
+                  className="p-1.5 sm:p-2 hover:bg-slate-800/50 rounded-lg transition-colors"
+                  aria-label="Kopírovat kód místnosti"
+                >
+                  {copied ? (
+                    <Icon name="check" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
+                  ) : (
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            )}
+            <button
+              onClick={() => setShowHelp(true)}
+              className="flex items-center gap-1 px-3 py-2 bg-slate-800/60 border border-slate-700/50 rounded-lg text-sm text-slate-200 hover:bg-slate-700/60 transition-all"
+              aria-label="Zobrazit nápovědu"
+            >
+              <Icon name="help" className="w-4 h-4 text-indigo-300" />
+              <span className="hidden sm:inline">Nápověda</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -984,6 +999,24 @@ export default function Home() {
         {view === 'results' && (
           <div className="max-w-2xl mx-auto">
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-8 backdrop-blur-sm">
+              <div className="relative overflow-hidden mb-6 rounded-xl border border-indigo-500/30 bg-gradient-to-r from-indigo-600/30 via-purple-600/30 to-pink-600/30 p-4 sm:p-5">
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute -left-6 top-2 w-10 h-10 bg-white/20 rounded-full blur-2xl animate-pulse"></div>
+                  <div className="absolute right-4 -top-4 w-14 h-14 bg-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="animate-ping inline-flex h-3 w-3 rounded-full bg-emerald-400/70"></span>
+                    <p className="text-sm text-emerald-200 font-semibold">Impostor odhalen!</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-lg">
+                    <span className="animate-bounce">🎉</span>
+                    <span className="animate-bounce delay-150">✨</span>
+                    <span className="animate-bounce delay-300">🎭</span>
+                  </div>
+                </div>
+              </div>
+
               <h2 className="text-xl sm:text-2xl font-bold text-center mb-8 text-slate-200 flex items-center justify-center gap-2">
                 <Icon name="trophy" className="w-6 h-6" />
                 Výsledky
@@ -1047,6 +1080,91 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {showHelp && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowHelp(false)}
+        >
+          <div
+            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl shadow-indigo-900/40"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute -left-10 -top-10 w-40 h-40 bg-indigo-500/20 blur-3xl pointer-events-none"></div>
+            <div className="absolute right-0 top-0 w-32 h-32 bg-pink-500/10 blur-3xl pointer-events-none"></div>
+            <div className="relative p-5 sm:p-8 space-y-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-300/80">Průvodce hrou</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2 flex-wrap">
+                    <Icon name="help" className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-300" />
+                    Jak hrát Impostor Game
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowHelp(false)}
+                  className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/70 text-slate-200 transition-colors"
+                  aria-label="Zavřít nápovědu"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-800/40">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="shield" className="w-5 h-5 text-emerald-300" />
+                    <h4 className="font-semibold text-slate-100">Role: Občan</h4>
+                  </div>
+                  <ul className="text-sm text-slate-300 space-y-1.5">
+                    <li>• Řekni krátký popis svého slova, neprozraď ho.</li>
+                    <li>• Sleduj rozpory v odpovědích ostatních.</li>
+                    <li>• Ptej se detailně – impostor často tápe.</li>
+                    <li>• Hlasuj pro nejpodezřelejšího.</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-800/40">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="mask" className="w-5 h-5 text-rose-300" />
+                    <h4 className="font-semibold text-slate-100">Role: Impostor</h4>
+                  </div>
+                  <ul className="text-sm text-slate-300 space-y-1.5">
+                    <li>• Nemáš slovo – improvizuj podle kategorie.</li>
+                    <li>• Buď obecný a drž se tématu.</li>
+                    <li>• Neopakuj chyby – poslouchej ostatní.</li>
+                    <li>• Útoč na nejisté hráče, abys odpoutal pozornost.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-800/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="detective" className="w-5 h-5 text-indigo-300" />
+                  <h4 className="font-semibold text-slate-100">Rychlý průběh kola</h4>
+                </div>
+                <ol className="text-sm text-slate-300 space-y-1.5 list-decimal list-inside">
+                  <li>Každý popíše své slovo (impostor improvizuje).</li>
+                  <li>Krátká diskuze, podezřelé odpovědi si zapamatuj.</li>
+                  <li>Hlasování: klikni na hráče, kterého tipuješ.</li>
+                  <li>Výsledky: zjisti, zda byl impostor odhalen.</li>
+                </ol>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowHelp(false)}
+                  className="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-semibold transition-colors shadow-md shadow-indigo-500/30 w-full sm:w-auto"
+                >
+                  Rozumím
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
