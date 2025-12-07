@@ -192,6 +192,7 @@ export default function Home() {
   const [error, setError] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState<number>(5);
+  const [preferSecondHalf, setPreferSecondHalf] = useState<boolean>(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showImpostor, setShowImpostor] = useState(false);
   const [confettiActive, setConfettiActive] = useState(false);
@@ -342,7 +343,7 @@ export default function Home() {
         const response = await fetch('/api/rooms/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: playerName.trim(), maxPlayers }),
+          body: JSON.stringify({ name: playerName.trim(), maxPlayers, preferSecondHalf }),
         });
         const data = await response.json();
         if (response.ok) {
@@ -703,6 +704,22 @@ export default function Home() {
                   </div>
                 </div>
 
+                <div className="flex items-start gap-3 p-4 bg-slate-800/30 border border-slate-700/50 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="preferSecondHalf"
+                    checked={preferSecondHalf}
+                    onChange={(e) => setPreferSecondHalf(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <label htmlFor="preferSecondHalf" className="flex-1 text-sm text-slate-300 cursor-pointer">
+                    Větší šance, že impostor nebude v první polovině hráčů
+                    <span className="block text-xs text-slate-500 mt-1">
+                      (např. při 6 hráčích větší šance na pozici 3-6)
+                    </span>
+                  </label>
+                </div>
+
                 <button
                   onClick={createRoom}
                   disabled={!playerName.trim()}
@@ -991,7 +1008,38 @@ export default function Home() {
                         <Icon name="dice" className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                         <span>Pořadí mluvení</span>
                       </p>
-                      <p className="text-2xl sm:text-3xl font-bold text-red-400 text-center break-words">Mluvíš jako {currentPlayer.speakingOrder}.</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-red-400 text-center break-words mb-4">Mluvíš jako {currentPlayer.speakingOrder}.</p>
+                      
+                      {/* Seznam pořadí mluvení pro všechny */}
+                      <div className="mt-4 pt-4 border-t border-slate-700/50">
+                        <p className="text-xs text-slate-500 mb-2 text-center">Pořadí mluvení (všichni vidí):</p>
+                        <div className="space-y-2">
+                          {[...gameState.players]
+                            .sort((a, b) => (a.speakingOrder || 0) - (b.speakingOrder || 0))
+                            .map((player) => (
+                              <div
+                                key={player.id}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                                  player.id === playerId
+                                    ? 'bg-red-500/20 border border-red-500/30'
+                                    : 'bg-slate-700/30'
+                                }`}
+                              >
+                                <span className="text-sm font-bold text-red-400 w-6 text-center">
+                                  {player.speakingOrder}.
+                                </span>
+                                <span className={`text-sm flex-1 ${
+                                  player.id === playerId ? 'text-red-300 font-semibold' : 'text-slate-300'
+                                }`}>
+                                  {player.name}
+                                  {player.id === playerId && (
+                                    <span className="ml-2 text-xs text-red-400">(Ty)</span>
+                                  )}
+                                </span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1010,7 +1058,38 @@ export default function Home() {
                         <Icon name="dice" className="w-4 h-4" />
                         Pořadí mluvení
                       </p>
-                      <p className="text-3xl font-bold text-indigo-400">Mluvíš jako {currentPlayer.speakingOrder}.</p>
+                      <p className="text-3xl font-bold text-indigo-400 mb-4">Mluvíš jako {currentPlayer.speakingOrder}.</p>
+                      
+                      {/* Seznam pořadí mluvení pro všechny */}
+                      <div className="mt-4 pt-4 border-t border-slate-700/50">
+                        <p className="text-xs text-slate-500 mb-2 text-center">Pořadí mluvení (všichni vidí):</p>
+                        <div className="space-y-2">
+                          {[...gameState.players]
+                            .sort((a, b) => (a.speakingOrder || 0) - (b.speakingOrder || 0))
+                            .map((player) => (
+                              <div
+                                key={player.id}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                                  player.id === playerId
+                                    ? 'bg-indigo-500/20 border border-indigo-500/30'
+                                    : 'bg-slate-700/30'
+                                }`}
+                              >
+                                <span className="text-sm font-bold text-indigo-400 w-6 text-center">
+                                  {player.speakingOrder}.
+                                </span>
+                                <span className={`text-sm flex-1 ${
+                                  player.id === playerId ? 'text-indigo-300 font-semibold' : 'text-slate-300'
+                                }`}>
+                                  {player.name}
+                                  {player.id === playerId && (
+                                    <span className="ml-2 text-xs text-indigo-400">(Ty)</span>
+                                  )}
+                                </span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
                     </div>
                   )}
                   <p className="text-base text-slate-400 flex items-center justify-center gap-2">
@@ -1087,12 +1166,29 @@ export default function Home() {
                   })}
               </div>
               
-              {votedFor && (
-                <div className="mt-6 text-center bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
-                  <p className="text-slate-400 text-sm flex items-center justify-center gap-2">
+              {/* Seznam hlasujících */}
+              {Object.keys(gameState.votes).length > 0 && (
+                <div className="mt-6 bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                  <p className="text-slate-400 text-sm mb-3 flex items-center gap-2">
                     <Icon name="vote" className="w-4 h-4" />
-                    Hlasovalo: {Object.keys(gameState.votes).length}/{gameState.players.length}
+                    Hlasovali ({Object.keys(gameState.votes).length}/{gameState.players.length}):
                   </p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.keys(gameState.votes).map((voterId) => {
+                      const voter = gameState.players.find(p => p.id === voterId);
+                      return voter ? (
+                        <span
+                          key={voterId}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-slate-300"
+                        >
+                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                            {voter.name.charAt(0).toUpperCase()}
+                          </div>
+                          {voter.name}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
                 </div>
               )}
             </div>

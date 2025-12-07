@@ -56,7 +56,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Vyber náhodného impostora
-    const impostorIndex = Math.floor(Math.random() * room.maxPlayers);
+    let impostorIndex: number;
+    if (room.preferSecondHalf) {
+      // Větší šance na druhou polovinu (např. pro 6 hráčů: pozice 3-6)
+      const firstHalf = Math.floor(room.maxPlayers / 2);
+      const secondHalfStart = firstHalf;
+      // 70% šance na druhou polovinu, 30% na první polovinu
+      if (Math.random() < 0.7) {
+        // Druhá polovina
+        impostorIndex = secondHalfStart + Math.floor(Math.random() * (room.maxPlayers - secondHalfStart));
+      } else {
+        // První polovina
+        impostorIndex = Math.floor(Math.random() * firstHalf);
+      }
+    } else {
+      // Rovnoměrné rozdělení
+      impostorIndex = Math.floor(Math.random() * room.maxPlayers);
+    }
     const impostor = room.players[impostorIndex];
     room.impostorId = impostor.id;
 

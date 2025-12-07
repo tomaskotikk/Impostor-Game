@@ -17,6 +17,7 @@ export interface Player {
     votes: Record<string, string>;
     word?: string;
     maxPlayers: number;
+    preferSecondHalf?: boolean;
   }
   
   export const wordCategories: Record<string, string[]> = {
@@ -332,7 +333,7 @@ export interface Player {
     return code;
   }
   
-  export function createRoom(maxPlayers = 5): string {
+  export function createRoom(maxPlayers = 5, preferSecondHalf = false): string {
     let code: string;
     do {
       code = generateRoomCode();
@@ -344,6 +345,7 @@ export interface Player {
       gamePhase: 'lobby',
       votes: {},
       maxPlayers: maxPlayers,
+      preferSecondHalf: preferSecondHalf,
     });
     return code;
   }

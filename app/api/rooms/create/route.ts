@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, maxPlayers } = await request.json();
+    const { name, maxPlayers, preferSecondHalf } = await request.json();
     
     if (!name || maxPlayers === undefined || maxPlayers === null) {
       return NextResponse.json(
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const roomCode = createRoom(maxPlayersNum);
+    const roomCode = createRoom(maxPlayersNum, preferSecondHalf === true);
     const room = getRoom(roomCode);
     
     if (!room) {
