@@ -1004,7 +1004,7 @@ export default function Home() {
                         className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0"
                       />
                       <div>
-                        <p className="text-sm text-slate-200">Šance 1/10, že nebude žádný impostor</p>
+                        <p className="text-sm text-slate-200">Šance 1/15, že nebude žádný impostor</p>
                         <p className="text-xs text-slate-500">(pokud nastane, všichni dostanou slovo)</p>
                       </div>
                     </label>
@@ -1017,7 +1017,7 @@ export default function Home() {
                         className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0"
                       />
                       <div>
-                        <p className="text-sm text-slate-200">Šance 1/10, že všichni budou impostor</p>
+                        <p className="text-sm text-slate-200">Šance 1/15, že všichni budou impostor</p>
                         <p className="text-xs text-slate-500">(pokud nastane, nikdo nedostane slovo)</p>
                       </div>
                     </label>

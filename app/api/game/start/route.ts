@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
     // Rozhodni speciální režim impostora
     let mode: 'none' | 'all' | 'normal' = 'normal';
     const roll = Math.random();
-    const noThreshold = room.noImpostorChance ? 1 / 10 : 0;
-    const allThreshold = room.allImpostorChance ? noThreshold + 1 / 10 : noThreshold;
+    const noThreshold = room.noImpostorChance ? 1 / 15 : 0;
+    const allThreshold = room.allImpostorChance ? noThreshold + 1 / 15 : noThreshold;
 
     if (room.noImpostorChance && roll < noThreshold) {
       mode = 'none';
