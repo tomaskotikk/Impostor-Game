@@ -1446,7 +1446,7 @@ export default function Home() {
     {/* Footer */}
     <footer className="mt-10 border-t border-slate-800/70 bg-slate-950/70">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-center text-slate-400 text-sm">
-        <span>Stránka Vytvořil: </span>
+        <span>Stránka Vytvořil:</span>
         <a
           href="https://tomaskotik.cz"
           target="_blank"
