@@ -36,6 +36,8 @@ export async function GET(request: NextRequest) {
       roomCode: normalizedRoomCode,
       maxPlayers: room.maxPlayers,
       gameMode: room.gameMode,
+      noImpostorChance: room.noImpostorChance,
+      allImpostorChance: room.allImpostorChance,
     });
   } catch (error) {
     console.error('Error getting room state:', error);

@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     room.gameStarted = true;
     room.gamePhase = 'playing';
-    room.votes = {};
+    room.votes = {}; // Reset všech hlasů
 
     // Pošli každému hráči jeho informace
     for (const player of room.players) {
@@ -135,6 +135,8 @@ export async function POST(request: NextRequest) {
       roomCode: normalizedRoomCode,
       maxPlayers: room.maxPlayers,
       gameMode: room.gameMode,
+      noImpostorChance: room.noImpostorChance,
+      allImpostorChance: room.allImpostorChance,
     });
 
     return NextResponse.json({ success: true });

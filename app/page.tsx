@@ -23,6 +23,8 @@ interface GameState {
   roomCode?: string;
   maxPlayers?: number;
   gameMode?: 'none' | 'all' | 'normal';
+  noImpostorChance?: boolean;
+  allImpostorChance?: boolean;
 }
 
 type View = 'menu' | 'create' | 'join' | 'lobby' | 'playing' | 'voting' | 'results';
@@ -258,10 +260,17 @@ export default function Home() {
           setShowWord(false);
         } else if (state.gamePhase === 'playing') {
           setView('playing');
+          setVotedFor(null); // Reset při nové hře
+          setShowWord(false);
         } else if (state.gamePhase === 'voting') {
           setView('voting');
-          // NERESTARTOVAT votedFor při změně na voting!
-          // setVotedFor(null); <-- ODSTRAŇTE TOTO
+          // Reset votedFor - zkontroluj jestli už máme hlas v gameState
+          const hasVote = state.votes[playerId || ''];
+          if (hasVote) {
+            setVotedFor(hasVote);
+          } else {
+            setVotedFor(null);
+          }
         } else if (state.gamePhase === 'results') {
           setView('results');
           setShowImpostor(false);
@@ -511,13 +520,17 @@ export default function Home() {
   const restartGame = async () => {
     if (roomCode && playerId) {
       try {
-        await fetch('/api/game/restart', {
+        setVotedFor(null);
+        setShowWord(false);
+        const response = await fetch('/api/game/restart', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ roomCode, playerId }),
         });
-        setVotedFor(null);
-        setShowWord(false);
+        if (!response.ok) {
+          const data = await response.json();
+          setError(data.error || 'Chyba při restartu hry');
+        }
       } catch (err) {
         setError('Chyba při restartu hry');
       }
@@ -1207,10 +1220,10 @@ export default function Home() {
                 </p>
               </div>
               
-              {/* Speciální kolonky pro režimy none/all */}
-              {(gameState.gameMode === 'none' || gameState.gameMode === 'all') && (
+              {/* Speciální kolonky - zobrazují se permanentně když jsou checkboxy zaškrtnuté */}
+              {(gameState.noImpostorChance || gameState.allImpostorChance) && (
                 <div className="space-y-3 mb-4">
-                  {gameState.gameMode === 'none' && (
+                  {gameState.noImpostorChance && (
                     <button
                       onClick={() => voteSpecial('none')}
                       disabled={!!votedFor}
@@ -1237,7 +1250,7 @@ export default function Home() {
                       </div>
                     </button>
                   )}
-                  {gameState.gameMode === 'all' && (
+                  {gameState.allImpostorChance && (
                     <button
                       onClick={() => voteSpecial('all')}
                       disabled={!!votedFor}
@@ -1408,54 +1421,57 @@ export default function Home() {
               {showImpostor && (
                 <div className="mb-6 sm:mb-8">
                   {(() => {
-                    // Speciální režimy
-                    if (gameState.gameMode === 'none') {
-                      const noImpostorVotes = Object.values(gameState.votes).filter(v => v === 'NO_IMPOSTOR').length;
-                      const maxVotes = Math.max(
-                        noImpostorVotes,
-                        ...gameState.players.map(p => Object.values(gameState.votes).filter(v => v === p.id).length)
-                      );
+                    // Speciální volby - když jsou checkboxy zaškrtnuté
+                    // Nejdřív zkontroluj speciální volby (mají prioritu)
+                    const noImpostorVotes = Object.values(gameState.votes).filter(v => v === 'NO_IMPOSTOR').length;
+                    const allImpostorVotes = Object.values(gameState.votes).filter(v => v === 'ALL_IMPOSTORS').length;
+                    const maxSpecialVotes = Math.max(noImpostorVotes, allImpostorVotes);
+                    
+                    // Pokud někdo hlasoval pro speciální volby, použij jejich logiku
+                    if (maxSpecialVotes > 0) {
+                      // Pokud hráči zvolili že není impostor
+                      if (noImpostorVotes > allImpostorVotes) {
+                        if (gameState.gameMode === 'none') {
+                          // Uhodli správně - není impostor
+                          return (
+                            <div className="text-center p-4 sm:p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                              <p className="text-lg sm:text-xl font-bold text-emerald-400">Vyhráli normální hráči!</p>
+                              <p className="text-sm sm:text-base text-slate-300 mt-1">Uhodli že není impostor</p>
+                            </div>
+                          );
+                        } else {
+                          // Neuhodli - je tam impostor, vyhrává impostor
+                          return (
+                            <div className="text-center p-4 sm:p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
+                              <p className="text-lg sm:text-xl font-bold text-red-400">Vyhrál IMPOSTOR!</p>
+                              <p className="text-sm sm:text-base text-slate-300 mt-1">Hráči zvolili že není impostor, ale impostor tam byl</p>
+                            </div>
+                          );
+                        }
+                      }
                       
-                      if (noImpostorVotes === maxVotes && maxVotes > 0) {
-                        return (
-                          <div className="text-center p-4 sm:p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
-                            <p className="text-lg sm:text-xl font-bold text-emerald-400">Vyhráli hráči!</p>
-                            <p className="text-sm sm:text-base text-slate-300 mt-1">Uhodli že není impostor</p>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <div className="text-center p-4 sm:p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
-                            <p className="text-lg sm:text-xl font-bold text-red-400">Prohráli hráči!</p>
-                            <p className="text-sm sm:text-base text-slate-300 mt-1">Neuhodli že není impostor</p>
-                          </div>
-                        );
+                      // Pokud hráči zvolili že všichni jsou impostor
+                      if (allImpostorVotes > noImpostorVotes) {
+                        if (gameState.gameMode === 'all') {
+                          // Uhodli správně - všichni jsou impostor
+                          return (
+                            <div className="text-center p-4 sm:p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                              <p className="text-lg sm:text-xl font-bold text-emerald-400">Vyhráli normální hráči!</p>
+                              <p className="text-sm sm:text-base text-slate-300 mt-1">Uhodli že všichni jsou impostor</p>
+                            </div>
+                          );
+                        } else {
+                          // Neuhodli - není to pravda, vyhrává impostor
+                          return (
+                            <div className="text-center p-4 sm:p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
+                              <p className="text-lg sm:text-xl font-bold text-red-400">Vyhrál IMPOSTOR!</p>
+                              <p className="text-sm sm:text-base text-slate-300 mt-1">Hráči zvolili že všichni jsou impostor, ale není to pravda</p>
+                            </div>
+                          );
+                        }
                       }
                     }
                     
-                    if (gameState.gameMode === 'all') {
-                      const allImpostorVotes = Object.values(gameState.votes).filter(v => v === 'ALL_IMPOSTORS').length;
-                      const maxVotes = Math.max(
-                        allImpostorVotes,
-                        ...gameState.players.map(p => Object.values(gameState.votes).filter(v => v === p.id).length)
-                      );
-                      
-                      if (allImpostorVotes === maxVotes && maxVotes > 0) {
-                        return (
-                          <div className="text-center p-4 sm:p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
-                            <p className="text-lg sm:text-xl font-bold text-emerald-400">Vyhráli hráči!</p>
-                            <p className="text-sm sm:text-base text-slate-300 mt-1">Uhodli že všichni jsou impostor</p>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <div className="text-center p-4 sm:p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
-                            <p className="text-lg sm:text-xl font-bold text-red-400">Prohráli hráči!</p>
-                            <p className="text-sm sm:text-base text-slate-300 mt-1">Neuhodli že všichni jsou impostor</p>
-                          </div>
-                        );
-                      }
-                    }
                     
                     // Normální režim
                     const impostor = gameState.players.find(p => p.isImpostor);

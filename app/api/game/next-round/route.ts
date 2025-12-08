@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
       roomCode: normalizedRoomCode,
       maxPlayers: room.maxPlayers,
       gameMode: room.gameMode,
+      noImpostorChance: room.noImpostorChance,
+      allImpostorChance: room.allImpostorChance,
     });
 
     return NextResponse.json({ success: true });
