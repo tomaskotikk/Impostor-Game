@@ -222,6 +222,41 @@ export default function Home() {
     }
   }, []);
 
+  // When user closes or reloads the page, notify server to free up the lobby slot
+  useEffect(() => {
+    const leaveRoom = () => {
+      if (roomCode && playerId) {
+        try {
+          // use navigator.sendBeacon if available for reliable unload delivery
+          const url = '/api/rooms/leave';
+          const payload = JSON.stringify({ roomCode, playerId });
+          if (navigator.sendBeacon) {
+            const blob = new Blob([payload], { type: 'application/json' });
+            navigator.sendBeacon(url, blob);
+          } else {
+            // fallback to fetch with keepalive
+            fetch(url, { method: 'POST', body: payload, headers: { 'Content-Type': 'application/json' }, keepalive: true });
+          }
+        } catch (err) {
+          console.error('Error sending leave beacon', err);
+        }
+      }
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      leaveRoom();
+      // Optionally show confirmation (not necessary) - do nothing else
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // also try to leave when component unmounts
+      leaveRoom();
+    };
+  }, [roomCode, playerId]);
+
   // Subscribe to room channel when roomCode changes
   useEffect(() => {
     if (pusher && roomCode) {
@@ -328,6 +363,25 @@ export default function Home() {
             setShowWord(true);
           }
         });
+
+        // Pokud tě host vyhodí, udělej úplné přesměrování na hlavní stránku (full reload)
+        privateChannel.bind('kicked', (data: { roomCode?: string }) => {
+          try { alert('Byl jsi vyhozen z místnosti.'); } catch (e) {}
+          // Vyčistit lokální stav
+          try { setRoomCode(''); } catch (e) {}
+          try { setPlayerId(null); } catch (e) {}
+          try { setView('menu'); } catch (e) {}
+          // Force navigaci na root s úplným reloadem stránky
+          try {
+            window.location.replace('/');
+            // Po chvíli zajistit reload, pokud replace neprovedl reload
+            setTimeout(() => {
+              try { window.location.reload(); } catch (e) {}
+            }, 200);
+          } catch (e) {
+            try { window.location.href = '/'; } catch (e) {}
+          }
+        });
       }
 
       setChannel(roomChannel);
@@ -396,6 +450,27 @@ export default function Home() {
       } catch (err) {
         setError('Chyba při připojování');
       }
+    }
+  };
+
+  // Host action: kick a player from the room
+  const kickPlayer = async (targetId: string) => {
+    if (!roomCode || !playerId) return;
+    if (!confirm('Opravdu chceš tohoto hráče vyhodit?')) return;
+    try {
+      const response = await fetch('/api/rooms/kick', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomCode, playerId: targetId, requesterId: playerId }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || 'Chyba při vyhazování hráče');
+        setTimeout(() => setError(''), 5000);
+      }
+    } catch (err) {
+      setError('Chyba při vyhazování hráče');
+      setTimeout(() => setError(''), 5000);
     }
   };
 
@@ -887,6 +962,15 @@ export default function Home() {
                                   <Icon name="crown" className="w-3 h-3" />
                                   Host
                                 </span>
+                              )}
+                              {/* Host může vyhodit ostatní hráče */}
+                              {isHost && player.id !== playerId && (
+                                <button
+                                  onClick={() => kickPlayer(player.id)}
+                                  className="ml-2 text-xs text-rose-300 bg-slate-800/30 hover:bg-slate-800/50 px-2 py-0.5 rounded-full"
+                                >
+                                  Vyhodit
+                                </button>
                               )}
                             </div>
                             <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">

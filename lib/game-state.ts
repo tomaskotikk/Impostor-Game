@@ -371,3 +371,27 @@ export interface Player {
   export function deleteRoom(roomCode: string): boolean {
     return rooms.delete(roomCode);
   }
+
+  // Odebere hráče z místnosti. Vrací true pokud byl hráč odstraněn.
+  export function removePlayer(roomCode: string, playerId: string): boolean {
+    const normalized = roomCode.toUpperCase();
+    const room = rooms.get(normalized);
+    if (!room) return false;
+
+    const before = room.players.length;
+    room.players = room.players.filter(p => p.id !== playerId);
+    const after = room.players.length;
+
+    if (after === 0) {
+      // pokud nejsou hráči, smaž místnost
+      rooms.delete(normalized);
+      return true;
+    }
+
+    if (after < before) {
+      rooms.set(normalized, room);
+      return true;
+    }
+
+    return false;
+  }
