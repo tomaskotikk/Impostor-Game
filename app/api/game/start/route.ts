@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { roomCode, category, customWords, playerId } = await request.json();
+    const { roomCode, category, customWords, playerId, preferSecondHalf, noImpostorChance, allImpostorChance } = await request.json();
     
     if (!roomCode || !playerId) {
       return NextResponse.json(
@@ -55,26 +55,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vyber náhodného impostora
-    let impostorIndex: number;
-    if (room.preferSecondHalf) {
-      // Větší šance na druhou polovinu (např. pro 6 hráčů: pozice 3-6)
-      const firstHalf = Math.floor(room.maxPlayers / 2);
-      const secondHalfStart = firstHalf;
-      // 70% šance na druhou polovinu, 30% na první polovinu
-      if (Math.random() < 0.7) {
-        // Druhá polovina
-        impostorIndex = secondHalfStart + Math.floor(Math.random() * (room.maxPlayers - secondHalfStart));
-      } else {
-        // První polovina
-        impostorIndex = Math.floor(Math.random() * firstHalf);
-      }
-    } else {
-      // Rovnoměrné rozdělení
-      impostorIndex = Math.floor(Math.random() * room.maxPlayers);
+    // Ulož aktuální volby (nastavují se při startu hry)
+    room.preferSecondHalf = !!preferSecondHalf;
+    room.noImpostorChance = !!noImpostorChance;
+    room.allImpostorChance = !!allImpostorChance;
+
+    // Rozhodni speciální režim impostora
+    let mode: 'none' | 'all' | 'normal' = 'normal';
+    const roll = Math.random();
+    const noThreshold = room.noImpostorChance ? 1 / 6 : 0;
+    const allThreshold = room.allImpostorChance ? noThreshold + 1 / 6 : noThreshold;
+
+    if (room.noImpostorChance && roll < noThreshold) {
+      mode = 'none';
+    } else if (room.allImpostorChance && roll < allThreshold) {
+      mode = 'all';
     }
-    const impostor = room.players[impostorIndex];
-    room.impostorId = impostor.id;
+
+    let impostorId: string | undefined = undefined;
+
+    if (mode === 'normal') {
+      // Vyber náhodného impostora
+      let impostorIndex: number;
+      if (room.preferSecondHalf) {
+        // Větší šance na druhou polovinu (např. pro 6 hráčů: pozice 3-6)
+        const firstHalf = Math.max(1, Math.floor(room.maxPlayers / 2));
+        const secondHalfStart = firstHalf;
+        if (Math.random() < 0.7) {
+          impostorIndex = secondHalfStart + Math.floor(Math.random() * (room.maxPlayers - secondHalfStart));
+        } else {
+          impostorIndex = Math.floor(Math.random() * firstHalf);
+        }
+      } else {
+        impostorIndex = Math.floor(Math.random() * room.maxPlayers);
+      }
+      const impostor = room.players[impostorIndex];
+      impostorId = impostor.id;
+      room.impostorId = impostorId;
+    } else {
+      room.impostorId = undefined;
+    }
 
     // Vygeneruj slovo
     const word = getRandomWord(category, customWords);
@@ -89,12 +109,20 @@ export async function POST(request: NextRequest) {
     room.players.forEach((player, index) => {
       player.speakingOrder = speakingOrder[index];
       
-      if (player.id === impostor.id) {
+      if (mode === 'none') {
+        player.isImpostor = false;
+        player.word = word;
+      } else if (mode === 'all') {
         player.isImpostor = true;
         player.word = undefined;
       } else {
-        player.isImpostor = false;
-        player.word = word;
+        if (player.id === impostorId) {
+          player.isImpostor = true;
+          player.word = undefined;
+        } else {
+          player.isImpostor = false;
+          player.word = word;
+        }
       }
     });
 

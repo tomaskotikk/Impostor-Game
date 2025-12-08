@@ -193,6 +193,8 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState<number>(5);
   const [preferSecondHalf, setPreferSecondHalf] = useState<boolean>(false);
+  const [noImpostorChance, setNoImpostorChance] = useState<boolean>(false);
+  const [allImpostorChance, setAllImpostorChance] = useState<boolean>(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showImpostor, setShowImpostor] = useState(false);
   const [confettiActive, setConfettiActive] = useState(false);
@@ -409,6 +411,9 @@ export default function Home() {
             playerId,
             category: selectedCategory && selectedCategory.trim() !== '' ? selectedCategory : undefined,
             customWords: wordsArray,
+            preferSecondHalf,
+            noImpostorChance,
+            allImpostorChance,
           }),
         });
         const data = await response.json();
@@ -704,22 +709,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 bg-slate-800/30 border border-slate-700/50 rounded-lg">
-                  <input
-                    type="checkbox"
-                    id="preferSecondHalf"
-                    checked={preferSecondHalf}
-                    onChange={(e) => setPreferSecondHalf(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 cursor-pointer"
-                  />
-                  <label htmlFor="preferSecondHalf" className="flex-1 text-sm text-slate-300 cursor-pointer">
-                    Větší šance, že impostor nebude v první polovině hráčů
-                    <span className="block text-xs text-slate-500 mt-1">
-                      (např. při 6 hráčích větší šance na pozici 3-6)
-                    </span>
-                  </label>
-                </div>
-
                 <button
                   onClick={createRoom}
                   disabled={!playerName.trim()}
@@ -932,6 +921,53 @@ export default function Home() {
                       <p className="text-xs text-slate-500 mt-2">Oddělte slova čárkou</p>
                     </div>
                   )}
+
+                  {/* Nastavení impostora */}
+                  <div className="space-y-3 bg-slate-800/30 border border-slate-700/50 rounded-lg p-4">
+                    <p className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                      <Icon name="mask" className="w-4 h-4 text-indigo-300" />
+                      Nastavení impostora
+                    </p>
+
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={preferSecondHalf}
+                        onChange={(e) => setPreferSecondHalf(e.target.checked)}
+                        className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0"
+                      />
+                      <div>
+                        <p className="text-sm text-slate-200">Větší šance, že impostor nebude v první polovině hráčů</p>
+                        <p className="text-xs text-slate-500">(např. při 6 hráčích větší šance na pozici 3-6)</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={noImpostorChance}
+                        onChange={(e) => setNoImpostorChance(e.target.checked)}
+                        className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0"
+                      />
+                      <div>
+                        <p className="text-sm text-slate-200">Šance 1/6, že nebude žádný impostor</p>
+                        <p className="text-xs text-slate-500">(pokud nastane, všichni dostanou slovo)</p>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={allImpostorChance}
+                        onChange={(e) => setAllImpostorChance(e.target.checked)}
+                        className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0"
+                      />
+                      <div>
+                        <p className="text-sm text-slate-200">Šance 1/6, že všichni budou impostor</p>
+                        <p className="text-xs text-slate-500">(pokud nastane, nikdo nedostane slovo)</p>
+                      </div>
+                    </label>
+                  </div>
 
                   <button
                     onClick={startGame}
@@ -1357,10 +1393,10 @@ export default function Home() {
                 <div className="p-4 rounded-xl border border-slate-800 bg-slate-800/40">
                   <div className="flex items-center gap-2 mb-2">
                     <Icon name="shield" className="w-5 h-5 text-emerald-300" />
-                    <h4 className="font-semibold text-slate-100">Role: Občan</h4>
+                    <h4 className="font-semibold text-slate-100">Role: Normální hráč</h4>
                   </div>
                   <ul className="text-sm text-slate-300 space-y-1.5">
-                    <li>• Řekni krátký popis svého slova, neprozraď ho.</li>
+                    <li>• Řekni krátký popis vygenerovaného slova podle kategorie, neprozraď ho.</li>
                     <li>• Sleduj rozpory v odpovědích ostatních.</li>
                     <li>• Ptej se detailně – impostor často tápe.</li>
                     <li>• Hlasuj pro nejpodezřelejšího.</li>
@@ -1406,6 +1442,21 @@ export default function Home() {
           </div>
         </div>
       )}
+
+    {/* Footer */}
+    <footer className="mt-10 border-t border-slate-800/70 bg-slate-950/70">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-center text-slate-400 text-sm">
+        <span>Stránka byla vytvořena: </span>
+        <a
+          href="https://tomaskotik.cz"
+          target="_blank"
+          rel="noreferrer"
+          className="ml-2 text-indigo-400 hover:text-indigo-300 font-semibold"
+        >
+          Tomáš Kotík
+        </a>
+      </div>
+    </footer>
     </main>
   );
 }

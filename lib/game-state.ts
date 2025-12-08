@@ -18,6 +18,8 @@ export interface Player {
     word?: string;
     maxPlayers: number;
     preferSecondHalf?: boolean;
+    noImpostorChance?: boolean;
+    allImpostorChance?: boolean;
   }
   
   export const wordCategories: Record<string, string[]> = {
@@ -333,7 +335,7 @@ export interface Player {
     return code;
   }
   
-  export function createRoom(maxPlayers = 5, preferSecondHalf = false): string {
+  export function createRoom(maxPlayers = 5): string {
     let code: string;
     do {
       code = generateRoomCode();
@@ -345,7 +347,9 @@ export interface Player {
       gamePhase: 'lobby',
       votes: {},
       maxPlayers: maxPlayers,
-      preferSecondHalf: preferSecondHalf,
+      preferSecondHalf: false,
+      noImpostorChance: false,
+      allImpostorChance: false,
     });
     return code;
   }
