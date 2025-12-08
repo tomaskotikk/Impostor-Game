@@ -22,6 +22,7 @@ interface GameState {
   votes: Record<string, string>;
   roomCode?: string;
   maxPlayers?: number;
+  gameMode?: 'none' | 'all' | 'normal';
 }
 
 type View = 'menu' | 'create' | 'join' | 'lobby' | 'playing' | 'voting' | 'results';
@@ -450,6 +451,30 @@ export default function Home() {
       }
     }
   };
+  
+  const voteSpecial = async (mode: 'none' | 'all') => {
+    if (roomCode && playerId) {
+      try {
+        // Použij speciální ID pro tyto režimy
+        const specialId = mode === 'none' ? 'NO_IMPOSTOR' : 'ALL_IMPOSTORS';
+        setVotedFor(specialId);
+        
+        const response = await fetch('/api/game/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomCode, playerId, votedForId: specialId }),
+        });
+        
+        if (!response.ok) {
+          setVotedFor(null);
+          setError('Chyba při hlasování');
+        }
+      } catch (err) {
+        setVotedFor(null);
+        setError('Chyba při hlasování');
+      }
+    }
+  };
 
   const startVoting = async () => {
     if (roomCode && playerId) {
@@ -479,6 +504,22 @@ export default function Home() {
         setCustomWords('');
       } catch (err) {
         setError('Chyba při spuštění nové hry');
+      }
+    }
+  };
+
+  const restartGame = async () => {
+    if (roomCode && playerId) {
+      try {
+        await fetch('/api/game/restart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomCode, playerId }),
+        });
+        setVotedFor(null);
+        setShowWord(false);
+      } catch (err) {
+        setError('Chyba při restartu hry');
       }
     }
   };
@@ -1166,6 +1207,66 @@ export default function Home() {
                 </p>
               </div>
               
+              {/* Speciální kolonky pro režimy none/all */}
+              {(gameState.gameMode === 'none' || gameState.gameMode === 'all') && (
+                <div className="space-y-3 mb-4">
+                  {gameState.gameMode === 'none' && (
+                    <button
+                      onClick={() => voteSpecial('none')}
+                      disabled={!!votedFor}
+                      className={`w-full p-4 rounded-lg text-left transition-all border ${
+                        votedFor === 'NO_IMPOSTOR'
+                          ? 'bg-emerald-500/10 border-emerald-500/30'
+                          : votedFor
+                          ? 'bg-slate-800/30 border-slate-700/30 opacity-50 cursor-not-allowed'
+                          : 'bg-blue-500/10 border-blue-500/30 hover:bg-blue-500/20'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center gap-2">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                            <Icon name="shield" className="w-5 h-5 text-blue-400" />
+                          </div>
+                          <span className="font-semibold text-base text-blue-300">Nikdo není impostor</span>
+                        </div>
+                        {Object.values(gameState.votes).filter((v) => v === 'NO_IMPOSTOR').length > 0 && (
+                          <span className="text-sm bg-slate-700/50 px-3 py-1 rounded-full flex-shrink-0 text-slate-300 border border-slate-600/50">
+                            {Object.values(gameState.votes).filter((v) => v === 'NO_IMPOSTOR').length} {Object.values(gameState.votes).filter((v) => v === 'NO_IMPOSTOR').length === 1 ? 'hlas' : 'hlasy'}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  )}
+                  {gameState.gameMode === 'all' && (
+                    <button
+                      onClick={() => voteSpecial('all')}
+                      disabled={!!votedFor}
+                      className={`w-full p-4 rounded-lg text-left transition-all border ${
+                        votedFor === 'ALL_IMPOSTORS'
+                          ? 'bg-emerald-500/10 border-emerald-500/30'
+                          : votedFor
+                          ? 'bg-slate-800/30 border-slate-700/30 opacity-50 cursor-not-allowed'
+                          : 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center gap-2">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center flex-shrink-0">
+                            <Icon name="mask" className="w-5 h-5 text-red-400" />
+                          </div>
+                          <span className="font-semibold text-base text-red-300">Všichni jsou impostor</span>
+                        </div>
+                        {Object.values(gameState.votes).filter((v) => v === 'ALL_IMPOSTORS').length > 0 && (
+                          <span className="text-sm bg-slate-700/50 px-3 py-1 rounded-full flex-shrink-0 text-slate-300 border border-slate-600/50">
+                            {Object.values(gameState.votes).filter((v) => v === 'ALL_IMPOSTORS').length} {Object.values(gameState.votes).filter((v) => v === 'ALL_IMPOSTORS').length === 1 ? 'hlas' : 'hlasy'}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-3">
                 {gameState.players
                   .filter((p) => p.id !== playerId)
@@ -1307,18 +1408,82 @@ export default function Home() {
               {showImpostor && (
                 <div className="mb-6 sm:mb-8">
                   {(() => {
+                    // Speciální režimy
+                    if (gameState.gameMode === 'none') {
+                      const noImpostorVotes = Object.values(gameState.votes).filter(v => v === 'NO_IMPOSTOR').length;
+                      const maxVotes = Math.max(
+                        noImpostorVotes,
+                        ...gameState.players.map(p => Object.values(gameState.votes).filter(v => v === p.id).length)
+                      );
+                      
+                      if (noImpostorVotes === maxVotes && maxVotes > 0) {
+                        return (
+                          <div className="text-center p-4 sm:p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                            <p className="text-lg sm:text-xl font-bold text-emerald-400">Vyhráli hráči!</p>
+                            <p className="text-sm sm:text-base text-slate-300 mt-1">Uhodli že není impostor</p>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="text-center p-4 sm:p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
+                            <p className="text-lg sm:text-xl font-bold text-red-400">Prohráli hráči!</p>
+                            <p className="text-sm sm:text-base text-slate-300 mt-1">Neuhodli že není impostor</p>
+                          </div>
+                        );
+                      }
+                    }
+                    
+                    if (gameState.gameMode === 'all') {
+                      const allImpostorVotes = Object.values(gameState.votes).filter(v => v === 'ALL_IMPOSTORS').length;
+                      const maxVotes = Math.max(
+                        allImpostorVotes,
+                        ...gameState.players.map(p => Object.values(gameState.votes).filter(v => v === p.id).length)
+                      );
+                      
+                      if (allImpostorVotes === maxVotes && maxVotes > 0) {
+                        return (
+                          <div className="text-center p-4 sm:p-6 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                            <p className="text-lg sm:text-xl font-bold text-emerald-400">Vyhráli hráči!</p>
+                            <p className="text-sm sm:text-base text-slate-300 mt-1">Uhodli že všichni jsou impostor</p>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="text-center p-4 sm:p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
+                            <p className="text-lg sm:text-xl font-bold text-red-400">Prohráli hráči!</p>
+                            <p className="text-sm sm:text-base text-slate-300 mt-1">Neuhodli že všichni jsou impostor</p>
+                          </div>
+                        );
+                      }
+                    }
+                    
+                    // Normální režim
                     const impostor = gameState.players.find(p => p.isImpostor);
                     if (!impostor) return null;
                     
                     const impostorVotes = Object.values(gameState.votes).filter(v => v === impostor.id).length;
-                    const maxVotes = Math.max(...gameState.players.map(p => 
-                      Object.values(gameState.votes).filter(v => v === p.id).length
-                    ));
-                    const isTie = gameState.players.filter(p => 
-                      Object.values(gameState.votes).filter(v => v === p.id).length === maxVotes
-                    ).length > 1;
+                    const playerVoteCounts = gameState.players.map(p => ({
+                      id: p.id,
+                      votes: Object.values(gameState.votes).filter(v => v === p.id).length,
+                      isImpostor: p.isImpostor || false
+                    }));
                     
-                    if (isTie) {
+                    const maxVotes = Math.max(...playerVoteCounts.map(p => p.votes));
+                    const playersWithMaxVotes = playerVoteCounts.filter(p => p.votes === maxVotes);
+                    const normalPlayersWithMaxVotes = playersWithMaxVotes.filter(p => !p.isImpostor);
+                    
+                    // Pokud je remíza mezi normálními hráči a impostor má nejméně hlasů, impostor vyhrává
+                    if (normalPlayersWithMaxVotes.length > 1 && impostorVotes < maxVotes) {
+                      return (
+                        <div className="text-center p-4 sm:p-6 bg-red-500/10 border border-red-500/30 rounded-xl">
+                          <p className="text-lg sm:text-xl font-bold text-red-400">Vyhrál IMPOSTOR!</p>
+                          <p className="text-sm sm:text-base text-slate-300 mt-1">Remíza mezi normálními hráči, impostor měl nejméně hlasů</p>
+                        </div>
+                      );
+                    }
+                    
+                    // Pokud je remíza obecně
+                    if (playersWithMaxVotes.length > 1) {
                       return (
                         <div className="text-center p-4 sm:p-6 bg-blue-500/10 border border-blue-500/30 rounded-xl">
                           <p className="text-lg sm:text-xl font-bold text-blue-400">Remíza!</p>
@@ -1345,13 +1510,22 @@ export default function Home() {
               )}
               
               {isHost && showImpostor && (
-                <button
-                  onClick={nextRound}
-                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 text-base rounded-lg transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
-                >
-                  <Icon name="refresh" className="w-5 h-5" />
-                  Nová hra
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={restartGame}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold py-3 text-base rounded-lg transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+                  >
+                    <Icon name="play" className="w-5 h-5" />
+                    Hrát znovu
+                  </button>
+                  <button
+                    onClick={nextRound}
+                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold py-3 text-base rounded-lg transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
+                  >
+                    <Icon name="refresh" className="w-5 h-5" />
+                    Nová hra
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -1446,7 +1620,7 @@ export default function Home() {
     {/* Footer */}
     <footer className="mt-10 border-t border-slate-800/70 bg-slate-950/70">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-center text-slate-400 text-sm">
-        <span>Stránka Vytvořil:</span>
+        <span>Stránku Vytvořil:</span>
         <a
           href="https://tomaskotik.cz"
           target="_blank"

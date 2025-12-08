@@ -20,6 +20,7 @@ export interface Player {
     preferSecondHalf?: boolean;
     noImpostorChance?: boolean;
     allImpostorChance?: boolean;
+    gameMode?: 'none' | 'all' | 'normal';
   }
   
   export const wordCategories: Record<string, string[]> = {

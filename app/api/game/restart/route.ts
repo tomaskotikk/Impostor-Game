@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    const { roomCode, category, customWords, playerId, preferSecondHalf, noImpostorChance, allImpostorChance } = await request.json();
+    const { roomCode, playerId } = await request.json();
     
     if (!roomCode || !playerId) {
       return NextResponse.json(
@@ -40,27 +40,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (room.gameStarted) {
-      return NextResponse.json(
-        { error: 'Hra již běží!' },
-        { status: 400 }
-      );
-    }
+    // Použij stejnou kategorii jako předtím
+    const category = room.category;
+    const customWords = room.customWords;
 
-    // Validace vlastních slov
-    if (!category && (!customWords || customWords.length < room.maxPlayers)) {
-      return NextResponse.json(
-        { error: `Musíš zadat alespoň ${room.maxPlayers} vlastních slov!` },
-        { status: 400 }
-      );
-    }
-
-    // Ulož aktuální volby (nastavují se při startu hry)
-    room.preferSecondHalf = !!preferSecondHalf;
-    room.noImpostorChance = !!noImpostorChance;
-    room.allImpostorChance = !!allImpostorChance;
-
-    // Rozhodni speciální režim impostora
+    // Rozhodni speciální režim impostora (použij stejné nastavení)
     let mode: 'none' | 'all' | 'normal' = 'normal';
     const roll = Math.random();
     const noThreshold = room.noImpostorChance ? 1 / 10 : 0;
@@ -101,8 +85,6 @@ export async function POST(request: NextRequest) {
     // Vygeneruj slovo
     const word = getRandomWord(category, customWords);
     room.word = word;
-    room.category = category;
-    room.customWords = customWords;
 
     // Vygeneruj náhodné pořadí mluvení
     const speakingOrder = generateSpeakingOrder(room.maxPlayers);
@@ -157,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error starting game:', error);
+    console.error('Error restarting game:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

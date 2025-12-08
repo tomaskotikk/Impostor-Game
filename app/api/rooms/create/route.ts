@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
       votes: room.votes,
       roomCode: roomCode,
       maxPlayers: room.maxPlayers,
+      gameMode: room.gameMode,
     });
 
     return NextResponse.json({

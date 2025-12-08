@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
         votes: room.votes,
         roomCode: normalizedRoomCode,
         maxPlayers: room.maxPlayers,
+        gameMode: room.gameMode,
       });
     }
 
