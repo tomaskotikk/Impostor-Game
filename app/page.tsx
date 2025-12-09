@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Pusher from 'pusher-js';
+import { Toaster } from 'sonner';
+import * as notifications from '@/lib/notifications';
+import { sound } from '@/lib/sound-effects';
 
 interface Player {
   id: string;
@@ -192,7 +195,6 @@ export default function Home() {
   const [customWords, setCustomWords] = useState<string>('');
   const [votedFor, setVotedFor] = useState<string | null>(null);
   const [showWord, setShowWord] = useState(false);
-  const [error, setError] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState<number>(5);
   const [preferSecondHalf, setPreferSecondHalf] = useState<boolean>(false);
@@ -202,8 +204,22 @@ export default function Home() {
   const [showImpostor, setShowImpostor] = useState(false);
   const [confettiActive, setConfettiActive] = useState(false);
   const [confettiType, setConfettiType] = useState<'green' | 'red' | 'blue' | null>(null);
+  const [soundMuted, setSoundMuted] = useState(false);
 
-  // Initialize Pusher
+  // Initialize sound muting from localStorage
+  useEffect(() => {
+    const muted = localStorage.getItem('game-sound-muted');
+    if (muted) {
+      setSoundMuted(JSON.parse(muted));
+    }
+  }, []);
+
+  // Sync sound mute state with sound effects library
+  useEffect(() => {
+    import('@/lib/sound-effects').then(({ setSoundMuted: setSoundEffectsMuted }) => {
+      setSoundEffectsMuted(soundMuted);
+    });
+  }, [soundMuted]);
   useEffect(() => {
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_PUSHER_KEY) {
       const pusherInstance = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
@@ -283,6 +299,27 @@ export default function Home() {
 
       roomChannel.bind('gameState', (state: GameState) => {
         console.log('📦 Received gameState:', state);
+        
+        // Detect player join/leave events
+        const previousPlayers = gameState.players;
+        const newPlayers = state.players;
+        
+        // Check for new players
+        newPlayers.forEach(newPlayer => {
+          if (!previousPlayers.find(p => p.id === newPlayer.id)) {
+            sound.join();
+            notifications.notifyPlayerJoined(newPlayer.name);
+          }
+        });
+        
+        // Check for players who left
+        previousPlayers.forEach(oldPlayer => {
+          if (!newPlayers.find(p => p.id === oldPlayer.id)) {
+            sound.leave();
+            notifications.notifyPlayerLeft(oldPlayer.name);
+          }
+        });
+        
         setGameState(state);
         if (state.roomCode) {
           setRoomCode(state.roomCode);
@@ -298,6 +335,8 @@ export default function Home() {
           setVotedFor(null); // Reset při nové hře
           setShowWord(false);
         } else if (state.gamePhase === 'voting') {
+          sound.voting();
+          notifications.notifyVotingPhase();
           setView('voting');
           // Reset votedFor - zkontroluj jestli už máme hlas v gameState
           const hasVote = state.votes[playerId || ''];
@@ -333,9 +372,13 @@ export default function Home() {
               else if (impostorVotes === maxVotes && impostorVotes > 0) {
                 // Impostor prohrál - pro něj červené, pro ostatní zelené
                 setConfettiType('green'); // green = impostor uhodnut
+                sound.winner();
+                notifications.notifyGameEnded(impostor.name, true);
               } else {
                 // Impostor neuhodnut (impostor vyhrál) - pro něj zelené, pro ostatní červené
                 setConfettiType('red'); // red = impostor neuhodnut
+                sound.loser();
+                notifications.notifyGameEnded(impostor.name, false);
               }
             }
             // Spustit konfety po další 0.5s
@@ -359,14 +402,20 @@ export default function Home() {
         });
 
         privateChannel.bind('wordAssigned', (data: { word: string; isImpostor: boolean; speakingOrder?: number }) => {
-          if (!data.isImpostor && data.word) {
+          if (data.isImpostor) {
+            sound.gameStart();
+            notifications.notifyYouAreImpostor();
+          } else if (data.word) {
+            sound.success();
+            notifications.notifyYouAreCitizen(data.word);
             setShowWord(true);
           }
         });
 
         // Pokud tě host vyhodí, udělej úplné přesměrování na hlavní stránku (full reload)
         privateChannel.bind('kicked', (data: { roomCode?: string }) => {
-          try { alert('Byl jsi vyhozen z místnosti.'); } catch (e) {}
+          sound.leave();
+          notifications.notifyYouWereKicked();
           // Vyčistit lokální stav
           try { setRoomCode(''); } catch (e) {}
           try { setPlayerId(null); } catch (e) {}
@@ -400,11 +449,9 @@ export default function Home() {
   const createRoom = async () => {
     if (playerName.trim() && maxPlayers) {
       if (playerName.trim().length > 16) {
-        setError('Nick může mít maximálně 16 znaků');
-        setTimeout(() => setError(''), 5000);
+        notifications.notifyNicknameToLong();
         return;
       }
-      setError('');
       try {
         const response = await fetch('/api/rooms/create', {
           method: 'POST',
@@ -417,10 +464,10 @@ export default function Home() {
           setPlayerId(data.playerId);
           setView('lobby');
         } else {
-          setError(data.error || 'Chyba při vytváření místnosti');
+          notifications.notifyError(data.error || 'Chyba při vytváření místnosti');
         }
       } catch (err) {
-        setError('Chyba při vytváření místnosti');
+        notifications.notifyError('Chyba při vytváření místnosti');
       }
     }
   };
@@ -428,11 +475,9 @@ export default function Home() {
   const joinRoom = async () => {
     if (playerName.trim() && inputRoomCode.trim()) {
       if (playerName.trim().length > 16) {
-        setError('Nick může mít maximálně 16 znaků');
-        setTimeout(() => setError(''), 5000);
+        notifications.notifyNicknameToLong();
         return;
       }
-      setError('');
       try {
         const response = await fetch('/api/rooms/join', {
           method: 'POST',
@@ -445,10 +490,10 @@ export default function Home() {
           setPlayerId(data.playerId);
           setView('lobby');
         } else {
-          setError(data.error || 'Chyba při připojování');
+          notifications.notifyError(data.error || 'Chyba při připojování');
         }
       } catch (err) {
-        setError('Chyba při připojování');
+        notifications.notifyError('Chyba při připojování');
       }
     }
   };
@@ -465,12 +510,10 @@ export default function Home() {
       });
       const data = await response.json();
       if (!response.ok) {
-        setError(data.error || 'Chyba při vyhazování hráče');
-        setTimeout(() => setError(''), 5000);
+        notifications.notifyError(data.error || 'Chyba při vyhazování hráče');
       }
     } catch (err) {
-      setError('Chyba při vyhazování hráče');
-      setTimeout(() => setError(''), 5000);
+      notifications.notifyError('Chyba při vyhazování hráče');
     }
   };
 
@@ -482,8 +525,7 @@ export default function Home() {
       const requiredWords = gameState.maxPlayers || 5;
       
       if (!selectedCategory && (!wordsArray || wordsArray.length < requiredWords)) {
-        setError(`Musíš zadat alespoň ${requiredWords} vlastních slov!`);
-        setTimeout(() => setError(''), 5000);
+        notifications.notifyNotEnoughWords(requiredWords);
         return;
       }
       
@@ -503,10 +545,10 @@ export default function Home() {
         });
         const data = await response.json();
         if (!response.ok) {
-          setError(data.error || 'Chyba při spuštění hry');
+          notifications.notifyError(data.error || 'Chyba při spuštění hry');
         }
       } catch (err) {
-        setError('Chyba při spuštění hry');
+        notifications.notifyError('Chyba při spuštění hry');
       }
     }
   };
@@ -526,12 +568,12 @@ export default function Home() {
         if (!response.ok) {
           // Pokud selže, resetuj votedFor
           setVotedFor(null);
-          setError('Chyba při hlasování');
+          notifications.notifyError('Chyba při hlasování');
         }
       } catch (err) {
         // Pokud selže, resetuj votedFor
         setVotedFor(null);
-        setError('Chyba při hlasování');
+        notifications.notifyError('Chyba při hlasování');
       }
     }
   };
@@ -551,11 +593,11 @@ export default function Home() {
         
         if (!response.ok) {
           setVotedFor(null);
-          setError('Chyba při hlasování');
+          notifications.notifyError('Chyba při hlasování');
         }
       } catch (err) {
         setVotedFor(null);
-        setError('Chyba při hlasování');
+        notifications.notifyError('Chyba při hlasování');
       }
     }
   };
@@ -569,7 +611,7 @@ export default function Home() {
           body: JSON.stringify({ roomCode, playerId }),
         });
       } catch (err) {
-        setError('Chyba při spuštění hlasování');
+        notifications.notifyError('Chyba při spuštění hlasování');
       }
     }
   };
@@ -587,7 +629,7 @@ export default function Home() {
         setSelectedCategory('');
         setCustomWords('');
       } catch (err) {
-        setError('Chyba při spuštění nové hry');
+        notifications.notifyError('Chyba při spuštění nové hry');
       }
     }
   };
@@ -604,10 +646,10 @@ export default function Home() {
         });
         if (!response.ok) {
           const data = await response.json();
-          setError(data.error || 'Chyba při restartu hry');
+          notifications.notifyError(data.error || 'Chyba při restartu hry');
         }
       } catch (err) {
-        setError('Chyba při restartu hry');
+        notifications.notifyError('Chyba při restartu hry');
       }
     }
   };
@@ -615,6 +657,7 @@ export default function Home() {
   const copyRoomCode = () => {
     navigator.clipboard.writeText(roomCode);
     setCopied(true);
+    notifications.notifyRoomCodeCopied();
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -729,19 +772,27 @@ export default function Home() {
               <Icon name="help" className="w-4 h-4 text-indigo-300" />
               <span className="hidden sm:inline">Nápověda</span>
             </button>
+            <button
+              onClick={() => setSoundMuted(!soundMuted)}
+              className="p-1.5 sm:p-2 hover:bg-slate-800/50 rounded-lg transition-colors"
+              aria-label={soundMuted ? 'Zapnout zvuky' : 'Vypnout zvuky'}
+            >
+              {soundMuted ? (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M13.5 4.06c0-1.336-1.616-2.256-2.73-1.572l-5.365 3.828A2 2 0 004 9.25v5.5a2 2 0 001.405 1.966l5.365 3.828c1.114.684 2.73-.236 2.73-1.572V4.06zM16.04 7.04L19 10m0 0l2.96 2.96M19 10l2.96-2.96M19 10l-2.96 2.96" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M13.5 4.06c0-1.336-1.616-2.256-2.73-1.572l-5.365 3.828A2 2 0 004 9.25v5.5a2 2 0 001.405 1.966l5.365 3.828c1.114.684 2.73-.236 2.73-1.572V4.06zM16.5 12a4.5 4.5 0 00-1.206-3.001m0 5.999a4.471 4.471 0 001.206-2.999" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
       </div>
 
       <div className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full">
-        {error && (
-          <div className="mb-4 sm:mb-6 bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-sm flex items-center gap-2 backdrop-blur-sm">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            {error}
-          </div>
-        )}
+        <Toaster position="top-right" theme="dark" richColors />
 
         {view === 'menu' && (
           <div className="max-w-2xl mx-auto">
@@ -1061,50 +1112,77 @@ export default function Home() {
                   )}
 
                   {/* Nastavení impostora */}
-                  <div className="space-y-3 bg-slate-800/30 border border-slate-700/50 rounded-lg p-4">
+                  <div className="space-y-3 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border border-indigo-400/20 rounded-lg p-4">
                     <p className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-                      <Icon name="mask" className="w-4 h-4 text-indigo-300" />
-                      Nastavení impostora
+                      <Icon name="dice" className="w-4 h-4 text-purple-300" />
+                      Speciální módy
                     </p>
 
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={preferSecondHalf}
-                        onChange={(e) => setPreferSecondHalf(e.target.checked)}
-                        className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0"
-                      />
-                      <div>
-                        <p className="text-sm text-slate-200">Větší šance, že impostor nebude v první polovině hráčů</p>
-                        <p className="text-xs text-slate-500">(např. při 6 hráčích větší šance na pozici 3-6)</p>
+                    <button
+                      type="button"
+                      onClick={() => setPreferSecondHalf(!preferSecondHalf)}
+                      className={`w-full flex items-start gap-3 p-3 rounded-lg border-2 transition-all ${
+                        preferSecondHalf
+                          ? 'border-indigo-400/60 bg-indigo-500/10'
+                          : 'border-slate-600/40 bg-slate-800/20 hover:border-slate-500/60'
+                      }`}
+                    >
+                      <div className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        preferSecondHalf
+                          ? 'border-indigo-400 bg-indigo-500'
+                          : 'border-slate-600'
+                      }`}>
+                        {preferSecondHalf && <Icon name="check" className="w-3 h-3 text-white" />}
                       </div>
-                    </label>
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-slate-200">Druhá polovina jako impostor</p>
+                        <p className="text-xs text-slate-500 mt-1">Větší šance, že impostor bude vybrán z druhé poloviny hráčů</p>
+                      </div>
+                    </button>
 
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={noImpostorChance}
-                        onChange={(e) => setNoImpostorChance(e.target.checked)}
-                        className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0"
-                      />
-                      <div>
-                        <p className="text-sm text-slate-200">Šance 1/15, že nebude žádný impostor</p>
-                        <p className="text-xs text-slate-500">(pokud nastane, všichni dostanou slovo)</p>
+                    <button
+                      type="button"
+                      onClick={() => setNoImpostorChance(!noImpostorChance)}
+                      className={`w-full flex items-start gap-3 p-3 rounded-lg border-2 transition-all ${
+                        noImpostorChance
+                          ? 'border-emerald-400/60 bg-emerald-500/10'
+                          : 'border-slate-600/40 bg-slate-800/20 hover:border-slate-500/60'
+                      }`}
+                    >
+                      <div className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        noImpostorChance
+                          ? 'border-emerald-400 bg-emerald-500'
+                          : 'border-slate-600'
+                      }`}>
+                        {noImpostorChance && <Icon name="check" className="w-3 h-3 text-white" />}
                       </div>
-                    </label>
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-slate-200">Žádný impostor (1/15 šance)</p>
+                        <p className="text-xs text-slate-500 mt-1">Všichni dostanou slovo - hledejte mezi sebou!</p>
+                      </div>
+                    </button>
 
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={allImpostorChance}
-                        onChange={(e) => setAllImpostorChance(e.target.checked)}
-                        className="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-700 text-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0"
-                      />
-                      <div>
-                        <p className="text-sm text-slate-200">Šance 1/15, že všichni budou impostor</p>
-                        <p className="text-xs text-slate-500">(pokud nastane, nikdo nedostane slovo)</p>
+                    <button
+                      type="button"
+                      onClick={() => setAllImpostorChance(!allImpostorChance)}
+                      className={`w-full flex items-start gap-3 p-3 rounded-lg border-2 transition-all ${
+                        allImpostorChance
+                          ? 'border-red-400/60 bg-red-500/10'
+                          : 'border-slate-600/40 bg-slate-800/20 hover:border-slate-500/60'
+                      }`}
+                    >
+                      <div className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        allImpostorChance
+                          ? 'border-red-400 bg-red-500'
+                          : 'border-slate-600'
+                      }`}>
+                        {allImpostorChance && <Icon name="check" className="w-3 h-3 text-white" />}
                       </div>
-                    </label>
+                      <div className="text-left">
+                        <p className="text-sm font-medium text-slate-200">Všichni impostory (1/15 šance)</p>
+                        <p className="text-xs text-slate-500 mt-1">Nikdo nedostane slovo - všichni lhete!</p>
+                      </div>
+                    </button>
                   </div>
 
                   <button
