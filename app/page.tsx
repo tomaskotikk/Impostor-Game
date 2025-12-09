@@ -195,7 +195,6 @@ export default function Home() {
   const [customWords, setCustomWords] = useState<string>('');
   const [votedFor, setVotedFor] = useState<string | null>(null);
   const [showWord, setShowWord] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState<number>(5);
   const [preferSecondHalf, setPreferSecondHalf] = useState<boolean>(false);
   const [noImpostorChance, setNoImpostorChance] = useState<boolean>(false);
@@ -270,6 +269,52 @@ export default function Home() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       // also try to leave when component unmounts
       leaveRoom();
+    };
+  }, [roomCode, playerId]);
+
+  // Disconnect button handler
+  const handleDisconnectRoom = async () => {
+    try {
+      await fetch('/api/rooms/leave', {
+        method: 'POST',
+        body: JSON.stringify({ roomCode, playerId }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('Error disconnecting from room', err);
+    }
+    // Reload page to clear state and go back to home
+    window.location.reload();
+  };
+
+  // Page visibility API - detect when user switches tab or minimizes app (mobile)
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.hidden && roomCode && playerId) {
+        // Page is hidden - immediately notify server
+        try {
+          const url = '/api/rooms/leave';
+          const payload = JSON.stringify({ roomCode, playerId });
+          if (navigator.sendBeacon) {
+            const blob = new Blob([payload], { type: 'application/json' });
+            navigator.sendBeacon(url, blob);
+          } else {
+            await fetch(url, {
+              method: 'POST',
+              body: payload,
+              headers: { 'Content-Type': 'application/json' },
+              keepalive: true
+            });
+          }
+        } catch (err) {
+          console.error('Error sending visibility leave beacon', err);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [roomCode, playerId]);
 
@@ -654,13 +699,6 @@ export default function Home() {
     }
   };
 
-  const copyRoomCode = () => {
-    navigator.clipboard.writeText(roomCode);
-    setCopied(true);
-    notifications.notifyRoomCodeCopied();
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   const currentPlayer = gameState.players.find(p => p.id === playerId);
   const isHost = gameState.players.length > 0 && gameState.players[0].id === playerId;
 
@@ -749,19 +787,6 @@ export default function Home() {
                 <code className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-800/50 border border-slate-700/50 rounded-lg font-mono text-xs sm:text-sm font-bold tracking-wider text-slate-200">
                   {roomCode}
                 </code>
-                <button
-                  onClick={copyRoomCode}
-                  className="p-1.5 sm:p-2 hover:bg-slate-800/50 rounded-lg transition-colors"
-                  aria-label="Kopírovat kód místnosti"
-                >
-                  {copied ? (
-                    <Icon name="check" className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
-                  ) : (
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  )}
-                </button>
               </div>
             )}
             <button
@@ -1211,6 +1236,14 @@ export default function Home() {
                         Čeká se na hráče ({gameState.players.length}/{gameState.maxPlayers || 5})
                       </>
                     )}
+                  </button>
+
+                  <button
+                    onClick={handleDisconnectRoom}
+                    className="w-full bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/50 text-rose-300 font-semibold py-3 text-base rounded-lg transition-all flex items-center justify-center gap-2"
+                  >
+                    <Icon name="exit" className="w-5 h-5" />
+                    Opustit místnost
                   </button>
                 </div>
               )}

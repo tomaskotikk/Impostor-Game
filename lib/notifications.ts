@@ -136,13 +136,6 @@ export function notifyYouAreCitizen(word: string) {
   });
 }
 
-export function notifyRoomCodeCopied() {
-  sound.notification();
-  toast.success('Kód místnosti zkopírován do schránky!', {
-    duration: 2500,
-  });
-}
-
 export function notifyConnectionError() {
   sound.error();
   toast.error('Chyba připojení! Zkuste to znovu.', {
