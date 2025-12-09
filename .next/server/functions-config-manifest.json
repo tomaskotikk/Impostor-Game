@@ -1,1 +1,1 @@
-{"version":1,"functions":{"/api/game/next-round":{},"/api/game/restart":{},"/api/game/start-voting":{},"/api/game/vote":{},"/api/pusher/auth":{},"/api/game/start":{},"/api/rooms/create":{},"/api/rooms/join":{},"/api/rooms/leave":{},"/api/rooms/kick":{},"/api/rooms/state":{}}}
+{"version":1,"functions":{"/api/game/restart":{},"/api/game/start":{},"/api/game/vote":{},"/api/game/start-voting":{},"/api/rooms/create":{},"/api/game/next-round":{},"/api/pusher/auth":{},"/api/rooms/join":{},"/api/rooms/leave":{},"/api/rooms/kick":{},"/api/rooms/state":{}}}

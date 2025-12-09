@@ -774,15 +774,22 @@ export default function Home() {
             </button>
             <button
               onClick={() => setSoundMuted(!soundMuted)}
-              className="p-1.5 sm:p-2 hover:bg-slate-800/50 rounded-lg transition-colors"
+              className={`p-1.5 sm:p-2 rounded-lg transition-all border ${
+                soundMuted
+                  ? 'border-red-500/40 bg-red-500/10 hover:bg-red-500/20'
+                  : 'border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20'
+              }`}
               aria-label={soundMuted ? 'Zapnout zvuky' : 'Vypnout zvuky'}
+              title={soundMuted ? '🔇 Zvuky vypnuty' : '🔊 Zvuky zapnuty'}
             >
               {soundMuted ? (
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M13.5 4.06c0-1.336-1.616-2.256-2.73-1.572l-5.365 3.828A2 2 0 004 9.25v5.5a2 2 0 001.405 1.966l5.365 3.828c1.114.684 2.73-.236 2.73-1.572V4.06zM16.04 7.04L19 10m0 0l2.96 2.96M19 10l2.96-2.96M19 10l-2.96 2.96" />
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  {/* Speaker with slash */}
+                  <path d="M13.5 4.06c0-1.336-1.616-2.256-2.73-1.572l-5.365 3.828A2 2 0 004 9.25v5.5a2 2 0 001.405 1.966l5.365 3.828c1.114.684 2.73-.236 2.73-1.572V4.06" />
+                  <path d="M3 3l18 18" strokeLinecap="round" />
                 </svg>
               ) : (
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M13.5 4.06c0-1.336-1.616-2.256-2.73-1.572l-5.365 3.828A2 2 0 004 9.25v5.5a2 2 0 001.405 1.966l5.365 3.828c1.114.684 2.73-.236 2.73-1.572V4.06zM16.5 12a4.5 4.5 0 00-1.206-3.001m0 5.999a4.471 4.471 0 001.206-2.999" />
                 </svg>
               )}
