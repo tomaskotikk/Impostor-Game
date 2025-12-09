@@ -792,7 +792,7 @@ export default function Home() {
       </div>
 
       <div className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full">
-        <Toaster position="top-right" theme="dark" richColors />
+        <Toaster position="top-right" theme="dark" richColors visibleToasts={1} />
 
         {view === 'menu' && (
           <div className="max-w-2xl mx-auto">

@@ -1,15 +1,15 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
-  "/api/game/start-voting/route": "app/api/game/start-voting/route.js",
-  "/api/game/start/route": "app/api/game/start/route.js",
-  "/api/game/restart/route": "app/api/game/restart/route.js",
-  "/api/game/vote/route": "app/api/game/vote/route.js",
-  "/api/rooms/join/route": "app/api/rooms/join/route.js",
-  "/api/pusher/auth/route": "app/api/pusher/auth/route.js",
-  "/api/rooms/create/route": "app/api/rooms/create/route.js",
   "/api/game/next-round/route": "app/api/game/next-round/route.js",
+  "/api/game/restart/route": "app/api/game/restart/route.js",
+  "/api/pusher/auth/route": "app/api/pusher/auth/route.js",
   "/api/rooms/leave/route": "app/api/rooms/leave/route.js",
-  "/api/rooms/kick/route": "app/api/rooms/kick/route.js",
-  "/api/rooms/state/route": "app/api/rooms/state/route.js"
+  "/api/game/start-voting/route": "app/api/game/start-voting/route.js",
+  "/api/game/vote/route": "app/api/game/vote/route.js",
+  "/api/rooms/create/route": "app/api/rooms/create/route.js",
+  "/api/rooms/state/route": "app/api/rooms/state/route.js",
+  "/api/game/start/route": "app/api/game/start/route.js",
+  "/api/rooms/join/route": "app/api/rooms/join/route.js",
+  "/api/rooms/kick/route": "app/api/rooms/kick/route.js"
 }
