@@ -336,7 +336,7 @@ export interface Player {
     return code;
   }
   
-  export function createRoom(maxPlayers = 5): string {
+  export function createRoom(maxPlayers = 8): string {
     let code: string;
     do {
       code = generateRoomCode();

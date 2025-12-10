@@ -33,9 +33,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (room.players.length !== room.maxPlayers) {
+    // Allow restarting when there are at least 3 players
+    if (room.players.length < 3) {
       return NextResponse.json(
-        { error: `Musí být přesně ${room.maxPlayers} hráčů!` },
+        { error: `Musí být alespoň 3 hráči!` },
         { status: 400 }
       );
     }
@@ -63,17 +64,17 @@ export async function POST(request: NextRequest) {
     if (mode === 'normal') {
       // Vyber náhodného impostora
       let impostorIndex: number;
+      const playerCount = room.players.length;
       if (room.preferSecondHalf) {
-        // Větší šance na druhou polovinu (např. pro 6 hráčů: pozice 3-6)
-        const firstHalf = Math.max(1, Math.floor(room.maxPlayers / 2));
+        const firstHalf = Math.max(1, Math.floor(playerCount / 2));
         const secondHalfStart = firstHalf;
         if (Math.random() < 0.7) {
-          impostorIndex = secondHalfStart + Math.floor(Math.random() * (room.maxPlayers - secondHalfStart));
+          impostorIndex = secondHalfStart + Math.floor(Math.random() * (playerCount - secondHalfStart));
         } else {
           impostorIndex = Math.floor(Math.random() * firstHalf);
         }
       } else {
-        impostorIndex = Math.floor(Math.random() * room.maxPlayers);
+        impostorIndex = Math.floor(Math.random() * playerCount);
       }
       const impostor = room.players[impostorIndex];
       impostorId = impostor.id;
@@ -86,8 +87,8 @@ export async function POST(request: NextRequest) {
     const word = getRandomWord(category, customWords);
     room.word = word;
 
-    // Vygeneruj náhodné pořadí mluvení
-    const speakingOrder = generateSpeakingOrder(room.maxPlayers);
+    // Vygeneruj náhodné pořadí mluvení pro aktuální počet hráčů
+    const speakingOrder = generateSpeakingOrder(room.players.length);
 
     // Přiřaď slova a pořadí hráčům
     room.players.forEach((player, index) => {

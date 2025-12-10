@@ -189,13 +189,13 @@ export default function Home() {
     gameStarted: false,
     gamePhase: 'lobby',
     votes: {},
-    maxPlayers: 5,
+    maxPlayers: 8,
   });
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [customWords, setCustomWords] = useState<string>('');
   const [votedFor, setVotedFor] = useState<string | null>(null);
   const [showWord, setShowWord] = useState(false);
-  const [maxPlayers, setMaxPlayers] = useState<number>(5);
+  const [maxPlayers, setMaxPlayers] = useState<number>(8);
   const [preferSecondHalf, setPreferSecondHalf] = useState<boolean>(false);
   const [noImpostorChance, setNoImpostorChance] = useState<boolean>(false);
   const [allImpostorChance, setAllImpostorChance] = useState<boolean>(false);
@@ -567,7 +567,8 @@ export default function Home() {
       const wordsArray = !selectedCategory && customWords 
         ? customWords.split(',').map(w => w.trim()).filter(w => w) 
         : undefined;
-      const requiredWords = gameState.maxPlayers || 5;
+      // Use current number of players as the required word count when starting
+      const requiredWords = gameState.players.length || gameState.maxPlayers || 8;
       
       if (!selectedCategory && (!wordsArray || wordsArray.length < requiredWords)) {
         notifications.notifyNotEnoughWords(requiredWords);
@@ -1002,12 +1003,12 @@ export default function Home() {
                     Čekárna
                   </h2>
                   <p className="text-sm text-slate-400">
-                    Čeká se na {(gameState.maxPlayers || 5) - gameState.players.length} 
-                    {(gameState.maxPlayers || 5) - gameState.players.length === 1 ? ' hráče' : ' hráče'}
+                    Čeká se na {(gameState.maxPlayers || 8) - gameState.players.length} 
+                    {(gameState.maxPlayers || 8) - gameState.players.length === 1 ? ' hráče' : ' hráče'}
                   </p>
                 </div>
                 <div className="text-right bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3">
-                  <div className="text-3xl font-bold text-slate-200">{gameState.players.length}/{gameState.maxPlayers || 5}</div>
+                  <div className="text-3xl font-bold text-slate-200">{gameState.players.length}/{gameState.maxPlayers || 8}</div>
                   <div className="text-xs text-slate-400 flex items-center gap-1 justify-end">
                     <Icon name="users" className="w-3 h-3" />
                     Hráči
@@ -1016,7 +1017,7 @@ export default function Home() {
               </div>
 
               <div className="grid gap-3 mb-8">
-                {Array.from({ length: gameState.maxPlayers || 5 }).map((_, index) => {
+                {Array.from({ length: gameState.maxPlayers || 8 }).map((_, index) => {
                   const player = gameState.players[index];
                   return (
                     <div
@@ -1130,7 +1131,7 @@ export default function Home() {
                   {!selectedCategory && (
                     <div>
                       <label className="block text-sm font-medium mb-2 text-slate-300">
-                        Vlastní slova (min. {gameState.maxPlayers || 5})
+                        Vlastní slova (min. {gameState.players.length || gameState.maxPlayers || 8})
                       </label>
                       <input
                         type="text"
@@ -1220,12 +1221,13 @@ export default function Home() {
                   <button
                     onClick={startGame}
                     disabled={
-                      gameState.players.length !== (gameState.maxPlayers || 5) ||
-                      (!selectedCategory && (!customWords.trim() || customWords.split(',').filter(w => w.trim()).length < (gameState.maxPlayers || 5)))
+                      // Allow starting when there are at least 3 players
+                      gameState.players.length < 3 ||
+                      (!selectedCategory && (!customWords.trim() || customWords.split(',').filter(w => w.trim()).length < (gameState.players.length || gameState.maxPlayers || 8)))
                     }
                     className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-semibold py-3 text-base rounded-lg transition-all disabled:cursor-not-allowed shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
                   >
-                    {gameState.players.length === (gameState.maxPlayers || 5) ? (
+                    {gameState.players.length >= 3 ? (
                       <>
                         <Icon name="play" className="w-5 h-5" />
                         Spustit hru
@@ -1233,7 +1235,7 @@ export default function Home() {
                     ) : (
                       <>
                         <Icon name="clock" className="w-5 h-5" />
-                        Čeká se na hráče ({gameState.players.length}/{gameState.maxPlayers || 5})
+                        Čeká se na hráče ({gameState.players.length}/{gameState.maxPlayers || 8})
                       </>
                     )}
                   </button>
