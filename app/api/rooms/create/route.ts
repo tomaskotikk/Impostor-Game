@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createRoom, getRoom } from '@/lib/game-state';
 import { pusherServer } from '@/lib/pusher';
@@ -39,6 +40,9 @@ export async function POST(request: NextRequest) {
       name,
     });
 
+    // 🔧 OPRAVA: Počkej chvíli před broadcastem (dej klientovi čas se subscribovat)
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     // Broadcast game state to room
     await pusherServer.trigger(`room-${roomCode}`, 'gameState', {
       players: room.players,
@@ -67,4 +71,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

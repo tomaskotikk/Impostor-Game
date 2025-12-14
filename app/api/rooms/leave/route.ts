@@ -1,3 +1,4 @@
+// api/rooms/leave/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getRoom, removePlayer } from '@/lib/game-state';
 import { pusherServer } from '@/lib/pusher';
@@ -13,14 +14,26 @@ export async function POST(request: NextRequest) {
     }
 
     const normalized = roomCode.toUpperCase();
+    
+    // 🔧 OPRAVA: Nejdřív ověř že hráč existuje
     const room = getRoom(normalized);
     if (!room) {
       return NextResponse.json({ error: 'Room not found' }, { status: 404 });
     }
 
+    const playerExists = room.players.some(p => p.id === playerId);
+    if (!playerExists) {
+      return NextResponse.json({ success: true }); // Už není v místnosti
+    }
+
+    // 🔧 OPRAVA: Odstraň hráče
     const removed = removePlayer(normalized, playerId);
 
-    // If removed, broadcast updated state (or deletion)
+    if (!removed) {
+      return NextResponse.json({ success: false });
+    }
+
+    // 🔧 OPRAVA: Broadcast AKTUÁLNÍ stav (po odstranění)
     const updatedRoom = getRoom(normalized);
     if (updatedRoom) {
       await pusherServer.trigger(`room-${normalized}`, 'gameState', {
@@ -38,11 +51,13 @@ export async function POST(request: NextRequest) {
         allImpostorChance: updatedRoom.allImpostorChance,
       });
     } else {
-      // pokud místnost byla smazána (prázdná), můžeme poslat event pro klienty (nepovinné)
-      await pusherServer.trigger(`room-${normalized}`, 'roomDeleted', { roomCode: normalized });
+      // Místnost byla smazána (prázdná)
+      await pusherServer.trigger(`room-${normalized}`, 'roomDeleted', { 
+        roomCode: normalized 
+      });
     }
 
-    return NextResponse.json({ success: removed });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error leaving room:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
