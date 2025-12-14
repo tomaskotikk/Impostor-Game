@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST='{"app\\\\page.tsx -> @/lib/sound-effects":{"id":5444,"files":[]}}';
+self.__REACT_LOADABLE_MANIFEST="{\"app\\\\page.tsx -> @/lib/sound-effects\":{\"id\":\"app\\\\page.tsx -> @/lib/sound-effects\",\"files\":[]}}"

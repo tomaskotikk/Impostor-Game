@@ -5,6 +5,8 @@ import Pusher from 'pusher-js';
 import { Toaster } from 'sonner';
 import * as notifications from '@/lib/notifications';
 import { sound } from '@/lib/sound-effects';
+import SupportForm from '@/components/SupportForm';
+import { Heart } from 'lucide-react';
 
 interface Player {
   id: string;
@@ -171,6 +173,16 @@ const Icon = ({ name, className = "w-5 h-5" }: { name: string; className?: strin
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10a4 4 0 118 0c0 1.657-1.5 2.5-2.5 3.5-.5.5-.5 1-.5 1.5M12 18h.01" />
       </svg>
     ),
+    heart: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+      </svg>
+    ),
+    menu: (
+      <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    ),
   };
 
   return icons[name] || null;
@@ -200,7 +212,9 @@ export default function Home() {
   const [noImpostorChance, setNoImpostorChance] = useState<boolean>(false);
   const [allImpostorChance, setAllImpostorChance] = useState<boolean>(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
   const [showImpostor, setShowImpostor] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [confettiActive, setConfettiActive] = useState(false);
   const [confettiType, setConfettiType] = useState<'green' | 'red' | 'blue' | null>(null);
   const [soundMuted, setSoundMuted] = useState(false);
@@ -791,34 +805,12 @@ export default function Home() {
               </div>
             )}
             <button
-              onClick={() => setShowHelp(true)}
+              onClick={() => setShowMenu(!showMenu)}
               className="flex items-center gap-1 px-3 py-2 bg-slate-800/60 border border-slate-700/50 rounded-lg text-sm text-slate-200 hover:bg-slate-700/60 transition-all"
-              aria-label="Zobrazit nápovědu"
+              aria-label="Otevřít menu"
             >
-              <Icon name="help" className="w-4 h-4 text-indigo-300" />
-              <span className="hidden sm:inline">Nápověda</span>
-            </button>
-            <button
-              onClick={() => setSoundMuted(!soundMuted)}
-              className={`p-1.5 sm:p-2 rounded-lg transition-all border ${
-                soundMuted
-                  ? 'border-red-500/40 bg-red-500/10 hover:bg-red-500/20'
-                  : 'border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20'
-              }`}
-              aria-label={soundMuted ? 'Zapnout zvuky' : 'Vypnout zvuky'}
-              title={soundMuted ? '🔇 Zvuky vypnuty' : '🔊 Zvuky zapnuty'}
-            >
-              {soundMuted ? (
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  {/* Speaker with slash */}
-                  <path d="M13.5 4.06c0-1.336-1.616-2.256-2.73-1.572l-5.365 3.828A2 2 0 004 9.25v5.5a2 2 0 001.405 1.966l5.365 3.828c1.114.684 2.73-.236 2.73-1.572V4.06" />
-                  <path d="M3 3l18 18" strokeLinecap="round" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M13.5 4.06c0-1.336-1.616-2.256-2.73-1.572l-5.365 3.828A2 2 0 004 9.25v5.5a2 2 0 001.405 1.966l5.365 3.828c1.114.684 2.73-.236 2.73-1.572V4.06zM16.5 12a4.5 4.5 0 00-1.206-3.001m0 5.999a4.471 4.471 0 001.206-2.999" />
-                </svg>
-              )}
+              <Icon name="menu" className="w-4 h-4 text-slate-300" />
+              <span className="hidden sm:inline">Menu</span>
             </button>
           </div>
         </div>
@@ -995,6 +987,17 @@ export default function Home() {
 
         {view === 'lobby' && (
           <div className="max-w-4xl mx-auto">
+            {roomCode && (
+              <div className="text-center mb-4 sm:mb-6">
+                <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl">
+                  <Icon name="target" className="w-4 h-4 text-slate-400" />
+                  <span className="text-xs sm:text-sm text-slate-400">Kód místnosti:</span>
+                  <code className="px-2 sm:px-3 py-1 bg-slate-900/50 border border-slate-800/50 rounded-lg font-mono text-base sm:text-lg font-bold tracking-wider text-slate-200">
+                    {roomCode}
+                  </code>
+                </div>
+              </div>
+            )}
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 sm:p-8 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-8">
                 <div>
@@ -1007,11 +1010,13 @@ export default function Home() {
                     {(gameState.maxPlayers || 8) - gameState.players.length === 1 ? ' hráče' : ' hráče'}
                   </p>
                 </div>
-                <div className="text-right bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3">
-                  <div className="text-3xl font-bold text-slate-200">{gameState.players.length}/{gameState.maxPlayers || 8}</div>
-                  <div className="text-xs text-slate-400 flex items-center gap-1 justify-end">
-                    <Icon name="users" className="w-3 h-3" />
-                    Hráči
+                <div className="flex items-center gap-3">
+                  <div className="text-right bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3">
+                    <div className="text-3xl font-bold text-slate-200">{gameState.players.length}/{gameState.maxPlayers || 8}</div>
+                    <div className="text-xs text-slate-400 flex items-center gap-1 justify-end">
+                      <Icon name="users" className="w-3 h-3" />
+                      Hráči
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1832,6 +1837,155 @@ export default function Home() {
                   Rozumím
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Support Modal */}
+      {showSupport && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowSupport(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl shadow-red-900/40"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute -left-10 -top-10 w-40 h-40 bg-red-500/20 blur-3xl pointer-events-none"></div>
+            <div className="absolute right-0 top-0 w-32 h-32 bg-pink-500/10 blur-3xl pointer-events-none"></div>
+            <div className="relative p-5 sm:p-8 space-y-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-red-300/80">Podpora hry</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2 flex-wrap">
+                    <Icon name="heart" className="w-5 h-5 sm:w-6 sm:h-6 text-red-300" />
+                    Podpořte Impostor Game
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowSupport(false)}
+                  className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/70 text-slate-200 transition-colors"
+                  aria-label="Zavřít podporu"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="text-center space-y-4">
+                <p className="text-slate-300">
+                  Pomozte nám udržovat a vylepšovat hru! Vaše podpora je neocenitelná pro další vývoj.
+                </p>
+
+                <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <Heart className="w-8 h-8 text-red-500" />
+                    <h4 className="text-lg font-semibold text-slate-100">Vyberte částku podpory</h4>
+                  </div>
+
+                  <SupportForm />
+
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowSupport(false)}
+                  className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold transition-colors shadow-md shadow-red-500/30 w-full sm:w-auto"
+                >
+                  Zavřít
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hamburger Menu Overlay */}
+      {showMenu && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-6 max-w-xs sm:max-w-sm w-full mx-4">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h3 className="text-base sm:text-lg font-bold text-slate-200">Menu</h3>
+              <button
+                onClick={() => setShowMenu(false)}
+                className="p-1.5 sm:p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-2 sm:space-y-3">
+              {roomCode && (
+                <div className="p-3 sm:p-4 bg-slate-800/30 border border-slate-700/50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="target" className="w-4 h-4 text-slate-400" />
+                    <span className="text-xs sm:text-sm font-medium text-slate-300">Kód místnosti</span>
+                  </div>
+                  <code className="block w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg font-mono text-sm sm:text-base font-bold tracking-wider text-slate-200 text-center">
+                    {roomCode}
+                  </code>
+                </div>
+              )}
+              <button
+                onClick={() => {
+                  setShowMenu(false);
+                  setShowHelp(true);
+                }}
+                className="w-full flex items-center gap-3 p-3 sm:p-4 bg-slate-800/50 hover:bg-slate-800 rounded-lg transition-colors text-left"
+              >
+                <Icon name="help" className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-300" />
+                <span className="text-sm sm:text-base text-slate-200">Nápověda</span>
+              </button>
+              <button
+                onClick={() => {
+                  setShowMenu(false);
+                  setShowSupport(true);
+                }}
+                className="w-full flex items-center gap-3 p-3 sm:p-4 bg-slate-800/50 hover:bg-slate-800 rounded-lg transition-colors text-left"
+              >
+                <Icon name="heart" className="w-4 h-4 sm:w-5 sm:h-5 text-red-300" />
+                <span className="text-sm sm:text-base text-slate-200">Podpora</span>
+              </button>
+              <button
+                onClick={() => setSoundMuted(!soundMuted)}
+                className={`w-full flex items-center gap-3 p-3 sm:p-4 rounded-lg transition-colors text-left ${
+                  soundMuted
+                    ? 'bg-red-500/10 hover:bg-red-500/20 border border-red-500/30'
+                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30'
+                }`}
+              >
+                {soundMuted ? (
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path d="M13.5 4.06c0-1.336-1.616-2.256-2.73-1.572l-5.365 3.828A2 2 0 004 9.25v5.5a2 2 0 001.405 1.966l5.365 3.828c1.114.684 2.73-.236 2.73-1.572V4.06" />
+                    <path d="M3 3l18 18" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.5 4.06c0-1.336-1.616-2.256-2.73-1.572l-5.365 3.828A2 2 0 004 9.25v5.5a2 2 0 001.405 1.966l5.365 3.828c1.114.684 2.73-.236 2.73-1.572V4.06zM16.5 12a4.5 4.5 0 00-1.206-3.001m0 5.999a4.471 4.471 0 001.206-2.999" />
+                  </svg>
+                )}
+                <span className="text-sm sm:text-base text-slate-200">
+                  {soundMuted ? 'Zapnout zvuky' : 'Vypnout zvuky'}
+                </span>
+              </button>
+              {roomCode && playerId && (
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    handleDisconnectRoom();
+                  }}
+                  className="w-full flex items-center gap-3 p-3 sm:p-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg transition-colors text-left"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="text-sm sm:text-base text-red-400">Opustit místnost</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
