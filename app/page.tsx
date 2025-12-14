@@ -302,6 +302,8 @@ export default function Home() {
   };
 
   // Page visibility API - detect when user switches tab or minimizes app (mobile)
+  // Temporarily disabled to test multiplayer issues
+  /*
   useEffect(() => {
     const handleVisibilityChange = async () => {
       if (document.hidden && roomCode && playerId) {
@@ -331,6 +333,7 @@ export default function Home() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [roomCode, playerId]);
+  */
 
   // Subscribe to room channel when roomCode changes
   useEffect(() => {
