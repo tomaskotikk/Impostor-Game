@@ -21,6 +21,7 @@ export interface Player {
     noImpostorChance?: boolean;
     allImpostorChance?: boolean;
     gameMode?: 'none' | 'all' | 'normal';
+    usedWords?: string[]; // Nové pole pro sledování použitých slov
   }
   
   export const wordCategories: Record<string, string[]> = {
@@ -299,19 +300,39 @@ export interface Player {
 };
 
   
-  export function getRandomWord(category?: string, customWords?: string[]): string {
-    if (customWords && Array.isArray(customWords) && customWords.length > 0) {
-      return customWords[Math.floor(Math.random() * customWords.length)];
-    }
+  export function getRandomWord(category?: string, customWords?: string[], usedWords?: string[]): string {
+    let availableWords: string[] = [];
     
-    if (category && typeof category === 'string' && category.trim() !== '') {
+    if (customWords && Array.isArray(customWords) && customWords.length > 0) {
+      availableWords = customWords;
+    } else if (category && typeof category === 'string' && category.trim() !== '') {
       const words = wordCategories[category];
       if (words && Array.isArray(words) && words.length > 0) {
-        return words[Math.floor(Math.random() * words.length)];
+        availableWords = words;
       }
     }
     
-    return 'Slovo';
+    if (availableWords.length === 0) {
+      return 'Slovo';
+    }
+    
+    // Filtrovat slova, která už byla použita
+    if (usedWords && Array.isArray(usedWords)) {
+      availableWords = availableWords.filter(word => !usedWords.includes(word));
+    }
+    
+    // Pokud nejsou žádná dostupná slova, vrať náhodné z původních (může se opakovat)
+    if (availableWords.length === 0) {
+      if (customWords && customWords.length > 0) {
+        return customWords[Math.floor(Math.random() * customWords.length)];
+      }
+      if (category && wordCategories[category]) {
+        return wordCategories[category][Math.floor(Math.random() * wordCategories[category].length)];
+      }
+      return 'Slovo';
+    }
+    
+    return availableWords[Math.floor(Math.random() * availableWords.length)];
   }
   
   // Nová funkce pro generování náhodného pořadí
@@ -351,6 +372,7 @@ export interface Player {
       preferSecondHalf: false,
       noImpostorChance: false,
       allImpostorChance: false,
+      usedWords: [],
     });
     return code;
   }

@@ -102,10 +102,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Vygeneruj slovo
-    const word = getRandomWord(category, customWords);
+    if (!room.usedWords) {
+      room.usedWords = [];
+    }
+    const word = getRandomWord(category, customWords, room.usedWords);
     room.word = word;
     room.category = category;
     room.customWords = customWords;
+    room.usedWords.push(word);
 
     // Vygeneruj náhodné pořadí mluvení pro aktuální počet hráčů
     const speakingOrder = generateSpeakingOrder(room.players.length);

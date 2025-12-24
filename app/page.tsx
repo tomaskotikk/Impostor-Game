@@ -665,6 +665,32 @@ export default function Home() {
     }
   };
 
+  const changeWord = async () => {
+    if (roomCode && playerId) {
+      try {
+        console.log('Changing word...');
+        const response = await fetch('/api/game/change-word', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomCode, playerId }),
+        });
+        console.log('Response status:', response.status);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Response data:', data);
+          notifications.notifySuccess('Slovo bylo úspěšně vyměněno');
+        } else {
+          const error = await response.json();
+          console.log('Error response:', error);
+          notifications.notifyError(error.error || 'Chyba při výměně slova');
+        }
+      } catch (err) {
+        console.error('Error changing word:', err);
+        notifications.notifyError('Chyba při výměně slova');
+      }
+    }
+  };
+
   const startVoting = async () => {
     if (roomCode && playerId) {
       try {
@@ -1406,13 +1432,22 @@ export default function Home() {
                 </div>
               )}
               {isHost && (
-                <button
-                  onClick={startVoting}
-                  className="mt-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 px-8 text-base rounded-lg transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 mx-auto"
-                >
-                  <Icon name="vote" className="w-5 h-5" />
-                  Začít hlasování
-                </button>
+                <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={changeWord}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 px-6 text-base rounded-lg transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                  >
+                    <Icon name="refresh" className="w-5 h-5" />
+                    Vyměnit slovo
+                  </button>
+                  <button
+                    onClick={startVoting}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 px-6 text-base rounded-lg transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+                  >
+                    <Icon name="vote" className="w-5 h-5" />
+                    Začít hlasování
+                  </button>
+                </div>
               )}
             </div>
           </div>
