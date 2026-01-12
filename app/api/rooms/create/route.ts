@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRoom, getRoom } from '@/lib/game-state';
+import { createRoom, getRoom, saveRooms } from '@/lib/game-state';
 import { pusherServer } from '@/lib/pusher';
 
 export const dynamic = 'force-dynamic';
@@ -39,6 +39,8 @@ export async function POST(request: NextRequest) {
       id: playerId,
       name,
     });
+
+    saveRooms();
 
     // 🔧 OPRAVA: Počkej chvíli před broadcastem (dej klientovi čas se subscribovat)
     await new Promise(resolve => setTimeout(resolve, 50));

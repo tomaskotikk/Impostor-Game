@@ -1,4 +1,4 @@
-// File: C:\Users\tomas\Desktop\ImpostorGame\app\api\game\start\route.ts
+// File: C:\Users\tomas\Desktop\sracky\ImpostorGame\app\api\game\start\route.ts
 import * as entry from '../../../../../../app/api/game/start/route.js'
 import type { NextRequest } from 'next/server.js'
 

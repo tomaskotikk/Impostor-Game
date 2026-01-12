@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRoom } from '@/lib/game-state';
+import { getRoom, saveRooms } from '@/lib/game-state';
 import { pusherServer } from '@/lib/pusher';
 
 export const dynamic = 'force-dynamic';
@@ -71,6 +71,8 @@ export async function POST(request: NextRequest) {
         allImpostorChance: room.allImpostorChance,
       });
     }
+
+    saveRooms();
 
     return NextResponse.json({ success: true, votes: room.votes });
   } catch (error) {

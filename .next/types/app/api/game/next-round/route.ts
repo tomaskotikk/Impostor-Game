@@ -1,8 +1,8 @@
-// File: C:\Users\tomas\Desktop\ImpostorGame\app\api\game\change-word\route.ts
-import * as entry from '../../../../../../app/api/game/change-word/route.js'
+// File: C:\Users\tomas\Desktop\sracky\ImpostorGame\app\api\game\next-round\route.ts
+import * as entry from '../../../../../../app/api/game/next-round/route.js'
 import type { NextRequest } from 'next/server.js'
 
-type TEntry = typeof import('../../../../../../app/api/game/change-word/route.js')
+type TEntry = typeof import('../../../../../../app/api/game/next-round/route.js')
 
 // Check that the entry is a valid entry
 checkFields<Diff<{

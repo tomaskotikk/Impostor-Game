@@ -24,6 +24,39 @@ export interface Player {
     usedWords?: string[]; // Nové pole pro sledování použitých slov
   }
   
+  import fs from 'fs';
+  import path from 'path';
+  
+  const ROOMS_FILE = path.join(process.cwd(), 'rooms.json');
+  
+  let rooms = new Map<string, GameRoom>();
+  
+  // Funkce pro uložení místností do souboru
+  export function saveRooms(): void {
+    try {
+      const roomsData = Object.fromEntries(rooms);
+      fs.writeFileSync(ROOMS_FILE, JSON.stringify(roomsData, null, 2));
+    } catch (error) {
+      console.error('Chyba při ukládání místností:', error);
+    }
+  }
+  
+  // Funkce pro načtení místností ze souboru
+  function loadRooms(): void {
+    try {
+      if (fs.existsSync(ROOMS_FILE)) {
+        const data = fs.readFileSync(ROOMS_FILE, 'utf-8');
+        const roomsData = JSON.parse(data);
+        rooms = new Map(Object.entries(roomsData));
+      }
+    } catch (error) {
+      console.error('Chyba při načítání místností:', error);
+    }
+  }
+  
+  // Načti místnosti při spuštění
+  loadRooms();
+  
   export const wordCategories: Record<string, string[]> = {
   'rappers-czsk': [
     'Rytmus', 'Ektor', 'Yzomandias', 'Nik Tendo', 'Separ',
@@ -346,8 +379,6 @@ export interface Player {
     return order;
   }
   
-  const rooms = new Map<string, GameRoom>();
-  
   function generateRoomCode(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let code = '';
@@ -374,6 +405,7 @@ export interface Player {
       allImpostorChance: false,
       usedWords: [],
     });
+    saveRooms();
     return code;
   }
   
@@ -384,6 +416,7 @@ export interface Player {
   // PŘIDÁNO: Funkce pro aktualizaci místnosti
   export function updateRoom(roomCode: string, room: GameRoom): void {
     rooms.set(roomCode, room);
+    saveRooms();
   }
   
   export function getAllRooms(): Map<string, GameRoom> {
@@ -391,7 +424,9 @@ export interface Player {
   }
   
   export function deleteRoom(roomCode: string): boolean {
-    return rooms.delete(roomCode);
+    const result = rooms.delete(roomCode);
+    if (result) saveRooms();
+    return result;
   }
 
   // Odebere hráče z místnosti. Vrací true pokud byl hráč odstraněn.
@@ -407,11 +442,13 @@ export interface Player {
     if (after === 0) {
       // pokud nejsou hráči, smaž místnost
       rooms.delete(normalized);
+      saveRooms();
       return true;
     }
 
     if (after < before) {
       rooms.set(normalized, room);
+      saveRooms();
       return true;
     }
 
