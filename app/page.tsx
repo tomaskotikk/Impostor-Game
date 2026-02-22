@@ -1129,7 +1129,7 @@ export default function Home() {
                   </div>
                   <ul className="text-xs text-slate-400 space-y-1">
                     <li>• Host (hráč s korunkou) vybírá kategorii a spouští hru.</li>
-                    <li>• Hra začne, jakmile host klikne na „Spustit hru" (min. 3 hráči).</li>
+                    <li>• Hra začne, jakmile host klikne na &bdquo;Spustit hru&ldquo; (min. 3 hráči).</li>
                     <li>• Po hře spouští hlasování taky host.</li>
                     <li>• Pokud chceš odejít, klikni na Menu → Opustit místnost.</li>
                   </ul>
@@ -1955,7 +1955,7 @@ export default function Home() {
                   <p>Host je hráč, který vytvořil místnost (první v seznamu, označen korunkou). Pouze host může:</p>
                   <ul className="ml-4 space-y-0.5 text-slate-400">
                     <li>• Spustit hru a vybrat kategorii</li>
-                    <li>• Zahájit hlasování (tlačítko „Začít hlasování")</li>
+                    <li>• Zahájit hlasování (tlačítko &bdquo;Začít hlasování&ldquo;)</li>
                     <li>• Vyměnit slovo během hry</li>
                     <li>• Spustit novou hru / další kolo po výsledcích</li>
                     <li>• Vyhodit hráče z místnosti</li>
@@ -1992,7 +1992,7 @@ export default function Home() {
                 <div className="text-sm text-slate-300 space-y-3">
                   <div>
                     <p className="font-medium text-slate-200 mb-1">Nejde hlasovat / chyba při hlasování</p>
-                    <p className="text-slate-400">Někdy se stane, že hlasování nezafunguje na první kliknutí. Zkus kliknout znovu – pokud problém přetrvává, host může spustit nové kolo přes „Hrát znovu".</p>
+                    <p className="text-slate-400">Někdy se stane, že hlasování nezafunguje na první kliknutí. Zkus kliknout znovu – pokud problém přetrvává, host může spustit nové kolo přes &bdquo;Hrát znovu&ldquo;.</p>
                   </div>
                   <div>
                     <p className="font-medium text-slate-200 mb-1">Hráč se nemůže připojit</p>
