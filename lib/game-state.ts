@@ -252,6 +252,44 @@ export interface Player {
     'Blade', 'Silver Surfer', 'Storm', 'Cyclops', 'Professor X',
   ],
 
+  'sports': [
+    // Letní olympijské sporty
+    'Atletika', 'Plavání', 'Gymnastika', 'Basketbal', 'Volejbal',
+    'Tenis', 'Stolní tenis', 'Badminton', 'Fotbal', 'Házená',
+    'Vodní pólo', 'Judo', 'Box', 'Zápas', 'Šerm',
+    'Veslování', 'Kanoistika', 'Jachting', 'Lukostřelba', 'Střelba',
+    'Jezdectví', 'Moderní pětiboj', 'Triatlon', 'Golf', 'Rugby',
+    'Skateboarding', 'Surfing', 'Lezení', 'Breakdance', 'BMX',
+    'Cyklistika', 'Potápění', 'Synchronizované plavání', 'Skok do vody', 'Taekwondo',
+    'Karate', 'Vzpírání', 'Beach volejbal', 'Softball', 'Baseball',
+    // Zimní olympijské sporty
+    'Lední hokej', 'Krasobruslení', 'Rychlobruslení', 'Short track', 'Curling',
+    'Biatlon', 'Běh na lyžích', 'Skoky na lyžích', 'Severská kombinace', 'Alpské lyžování',
+    'Snowboarding', 'Freestyle lyžování', 'Bobsled', 'Sáňkování', 'Skeleton',
+    // Další populární sporty
+    'Kriket', 'Americký fotbal', 'MMA', 'Kickbox', 'Florbal',
+    'Squash', 'Bowling', 'Šipky', 'Billiard', 'Poker',
+    'Parkour', 'Motokros', 'Formule 1', 'Nascar', 'Rally',
+  ],
+
+  'athletes': [
+    // Čeští sportovci
+    'Jaromír Jágr', 'Petr Čech', 'Pavel Nedvěd', 'Jan Železný', 'Emil Zátopek',
+    'Martina Navrátilová', 'Dominik Hašek', 'Tomáš Rosický', 'Milan Baroš', 'Patrik Eliáš',
+    'Roman Šebrle', 'Barbora Špotáková', 'Ester Ledecká', 'Martina Sáblíková', 'Karolína Plíšková',
+    'Petra Kvitová', 'Tomáš Berdych', 'David Krejčí', 'David Pastrňák', 'Jakub Voráček',
+    'Tomáš Vokoun', 'Jan Koller', 'Vladimír Šmicer', 'Karel Poborský', 'Ondřej Bank',
+    'Roman Kreuziger', 'Lukáš Krpálek', 'Jiří Procházka', 'Tomáš Souček', 'Patrik Schick',
+    'Adam Ondra', 'Gabriela Koukalová', 'Veronika Vítková',
+    // Zahraniční sportovci - nejznámější
+    'Lionel Messi', 'Cristiano Ronaldo', 'Usain Bolt', 'Michael Phelps', 'Roger Federer',
+    'Rafael Nadal', 'Novak Djokovic', 'Serena Williams', 'Tiger Woods', 'Michael Jordan',
+    'LeBron James', 'Kobe Bryant', 'Muhammad Ali', 'Mike Tyson', 'Floyd Mayweather',
+    'Neymar', 'Kylian Mbappé', 'Erling Haaland', 'Lewis Hamilton', 'Max Verstappen',
+    'Wayne Gretzky', 'Tom Brady', 'Pelé', 'Diego Maradona', 'Zinedine Zidane',
+    'David Beckham', 'Ronaldinho', 'Conor McGregor', 'Simone Biles', 'Michael Schumacher',
+  ],
+
   'jidlo': [
   // OVOCE
   'Jablko','Hruška','Banán','Pomeranč','Mandarinka',

@@ -47,6 +47,8 @@ const categories = [
   { id: 'jidlo', name: 'Jídlo', description: 'Ovoce, Zelenina , Celá jídla...', icon: 'utensils' },
   { id: 'games', name: 'Hry', description: 'Minecraft, GTA, Fortnite...', icon: 'gamepad' },
   { id: 'superheroes', name: 'Superhrdinové', description: 'Superman, Batman, Wonder Woman...', icon: 'shield' },
+  { id: 'sports', name: 'Sporty', description: 'Fotbal, Hokej, Tenis, Plavání...', icon: 'trophy' },
+  { id: 'athletes', name: 'Sportovci', description: 'Jágr, Bolt, Federer, Čech...', icon: 'star' },
 ];
 
 // Icon component helper
@@ -212,6 +214,7 @@ export default function Home() {
   const [noImpostorChance, setNoImpostorChance] = useState<boolean>(false);
   const [allImpostorChance, setAllImpostorChance] = useState<boolean>(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showImportantInfo, setShowImportantInfo] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
   const [showImpostor, setShowImpostor] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -886,6 +889,31 @@ export default function Home() {
                 <p className="text-xs sm:text-sm text-slate-400">Vstupte do existující místnosti</p>
               </button>
             </div>
+
+            {/* Pravidla & Důležité info tlačítka na hlavní stránce */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
+              <button
+                onClick={() => setShowHelp(true)}
+                className="group bg-slate-900/50 hover:bg-slate-800/50 border border-slate-800 hover:border-slate-700 rounded-xl p-4 sm:p-5 transition-all text-left backdrop-blur-sm hover:shadow-lg hover:shadow-indigo-500/10"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="help" className="w-5 h-5 text-indigo-400" />
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-200">Pravidla</h3>
+                </div>
+                <p className="text-xs text-slate-500">Jak se hraje</p>
+              </button>
+
+              <button
+                onClick={() => setShowImportantInfo(true)}
+                className="group bg-slate-900/50 hover:bg-slate-800/50 border border-slate-800 hover:border-slate-700 rounded-xl p-4 sm:p-5 transition-all text-left backdrop-blur-sm hover:shadow-lg hover:shadow-amber-500/10"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-base">⚡</span>
+                  <h3 className="text-sm sm:text-base font-semibold text-slate-200">Důležité info</h3>
+                </div>
+                <p className="text-xs text-slate-500">Host, hlasování, problémy</p>
+              </button>
+            </div>
           </div>
         )}
 
@@ -921,27 +949,7 @@ export default function Home() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-3 text-slate-300 flex items-center gap-2">
-                    <Icon name="users" className="w-4 h-4" />
-                    Počet hráčů
-                  </label>
-                  <div className="grid grid-cols-6 gap-2">
-                    {[3, 4, 5, 6, 7, 8].map((num) => (
-                      <button
-                        key={num}
-                        onClick={() => setMaxPlayers(num)}
-                        className={`py-3 px-4 rounded-lg font-semibold text-base transition-all ${
-                          maxPlayers === num
-                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
-                            : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 border border-slate-700/50'
-                        }`}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <p className="text-xs text-slate-500">Místnost je pro max. 8 hráčů. Hru můžeš spustit od 3 hráčů.</p>
 
                 <button
                   onClick={createRoom}
@@ -1035,8 +1043,10 @@ export default function Home() {
                     Čekárna
                   </h2>
                   <p className="text-sm text-slate-400">
-                    Čeká se na {(gameState.maxPlayers || 8) - gameState.players.length} 
-                    {(gameState.maxPlayers || 8) - gameState.players.length === 1 ? ' hráče' : ' hráče'}
+                    {gameState.players.length < 3 
+                      ? `Ještě ${3 - gameState.players.length} ${3 - gameState.players.length === 1 ? 'hráč' : 'hráči'} k minimálnímu počtu (3)`
+                      : `Připojeno ${gameState.players.length} z max. ${gameState.maxPlayers || 8} hráčů – lze spustit!`
+                    }
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1109,6 +1119,22 @@ export default function Home() {
                   );
                 })}
               </div>
+
+              {/* Info box pro ne-hosty */}
+              {!isHost && (
+                <div className="mb-6 p-4 rounded-xl border border-slate-700/50 bg-slate-800/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-base">ℹ️</span>
+                    <h4 className="font-semibold text-sm text-slate-300">Čekáš na hosta</h4>
+                  </div>
+                  <ul className="text-xs text-slate-400 space-y-1">
+                    <li>• Host (hráč s korunkou) vybírá kategorii a spouští hru.</li>
+                    <li>• Hra začne, jakmile host klikne na „Spustit hru" (min. 3 hráči).</li>
+                    <li>• Po hře spouští hlasování taky host.</li>
+                    <li>• Pokud chceš odejít, klikni na Menu → Opustit místnost.</li>
+                  </ul>
+                </div>
+              )}
 
               {isHost && (
                 <div className="space-y-4 pt-6 border-t border-slate-800">
@@ -1264,12 +1290,12 @@ export default function Home() {
                     {gameState.players.length >= 3 ? (
                       <>
                         <Icon name="play" className="w-5 h-5" />
-                        Spustit hru
+                        Spustit hru ({gameState.players.length} {gameState.players.length === 1 ? 'hráč' : gameState.players.length < 5 ? 'hráči' : 'hráčů'})
                       </>
                     ) : (
                       <>
                         <Icon name="clock" className="w-5 h-5" />
-                        Čeká se na hráče ({gameState.players.length}/{gameState.maxPlayers || 8})
+                        Čeká se na hráče ({gameState.players.length}/min. 3)
                       </>
                     )}
                   </button>
@@ -1447,6 +1473,13 @@ export default function Home() {
                     <Icon name="vote" className="w-5 h-5" />
                     Začít hlasování
                   </button>
+                </div>
+              )}
+              {!isHost && (
+                <div className="mt-6 text-center">
+                  <p className="text-xs text-slate-500">
+                    💡 Hlasování spouští host. Nejdřív diskutujte, kdo by mohl být impostor.
+                  </p>
                 </div>
               )}
             </div>
@@ -1795,6 +1828,7 @@ export default function Home() {
         )}
       </div>
 
+      {/* Modal: Pravidla */}
       {showHelp && (
         <div
           className="fixed inset-0 z-[999] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm"
@@ -1811,16 +1845,16 @@ export default function Home() {
             <div className="relative p-5 sm:p-8 space-y-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-300/80">Průvodce hrou</p>
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-indigo-300/80">Návod na hru</p>
                   <h3 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2 flex-wrap">
                     <Icon name="help" className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-300" />
-                    Jak hrát Impostor Game
+                    Pravidla hry
                   </h3>
                 </div>
                 <button
                   onClick={() => setShowHelp(false)}
                   className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/70 text-slate-200 transition-colors"
-                  aria-label="Zavřít nápovědu"
+                  aria-label="Zavřít pravidla"
                 >
                   ✕
                 </button>
@@ -1871,6 +1905,114 @@ export default function Home() {
                 <button
                   onClick={() => setShowHelp(false)}
                   className="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-semibold transition-colors shadow-md shadow-indigo-500/30 w-full sm:w-auto"
+                >
+                  Rozumím
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Důležité info */}
+      {showImportantInfo && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowImportantInfo(false)}
+        >
+          <div
+            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl shadow-amber-900/40"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute -left-10 -top-10 w-40 h-40 bg-amber-500/20 blur-3xl pointer-events-none"></div>
+            <div className="absolute right-0 top-0 w-32 h-32 bg-orange-500/10 blur-3xl pointer-events-none"></div>
+            <div className="relative p-5 sm:p-8 space-y-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-amber-300/80">Vše co potřebuješ vědět</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-slate-100 flex items-center gap-2 flex-wrap">
+                    <span className="text-lg sm:text-xl">⚡</span>
+                    Důležité informace
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowImportantInfo(false)}
+                  className="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/70 text-slate-200 transition-colors"
+                  aria-label="Zavřít důležité info"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon name="crown" className="w-5 h-5 text-amber-300" />
+                  <h4 className="font-semibold text-amber-300">Kdo je Host?</h4>
+                </div>
+                <div className="text-sm text-slate-300 space-y-2">
+                  <p>Host je hráč, který vytvořil místnost (první v seznamu, označen korunkou). Pouze host může:</p>
+                  <ul className="ml-4 space-y-0.5 text-slate-400">
+                    <li>• Spustit hru a vybrat kategorii</li>
+                    <li>• Zahájit hlasování (tlačítko „Začít hlasování")</li>
+                    <li>• Vyměnit slovo během hry</li>
+                    <li>• Spustit novou hru / další kolo po výsledcích</li>
+                    <li>• Vyhodit hráče z místnosti</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon name="users" className="w-5 h-5 text-indigo-300" />
+                  <h4 className="font-semibold text-indigo-300">Vytváření místnosti & počet hráčů</h4>
+                </div>
+                <div className="text-sm text-slate-300 space-y-2">
+                  <p className="text-slate-400">Místnost je automaticky pro max. <strong className="text-slate-300">8 hráčů</strong>. Hru můžeš spustit kdykoliv, jakmile se připojí alespoň <strong className="text-slate-300">3 hráči</strong> – nemusíte čekat na plný počet!</p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon name="refresh" className="w-5 h-5 text-emerald-300" />
+                  <h4 className="font-semibold text-emerald-300">Jak opustit místnost / restartovat</h4>
+                </div>
+                <div className="text-sm text-slate-300 space-y-2">
+                  <p className="text-slate-400">Klikni na <strong className="text-slate-300">Menu</strong> (vpravo nahoře) → <strong className="text-slate-300">Opustit místnost</strong>. Tím se odpojíš a vrátíš na hlavní stránku.</p>
+                  <p className="text-slate-400">Pokud chceš úplný restart, stačí <strong className="text-slate-300">obnovit stránku</strong> (F5 na PC, potáhni dolů na mobilu).</p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">🔧</span>
+                  <h4 className="font-semibold text-rose-300">Řešení problémů</h4>
+                </div>
+                <div className="text-sm text-slate-300 space-y-3">
+                  <div>
+                    <p className="font-medium text-slate-200 mb-1">Nejde hlasovat / chyba při hlasování</p>
+                    <p className="text-slate-400">Někdy se stane, že hlasování nezafunguje na první kliknutí. Zkus kliknout znovu – pokud problém přetrvává, host může spustit nové kolo přes „Hrát znovu".</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-200 mb-1">Hráč se nemůže připojit</p>
+                    <p className="text-slate-400">Zkontroluj, že kód místnosti je správně zadaný (4 velká písmena). Místnost musí existovat a nesmí být plná.</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-200 mb-1">Hra zamrzla / nic se neděje</p>
+                    <p className="text-slate-400">Obnov stránku (F5 nebo potáhni dolů na mobilu). Pokud to nepomůže, všichni opusťte místnost a vytvořte novou.</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-200 mb-1">Vypadl mi hráč</p>
+                    <p className="text-slate-400">Pokud se hráč odpojí (zavře okno, ztratí připojení), automaticky opustí místnost. Host ho může znovu pozvat pomocí kódu místnosti.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowImportantInfo(false)}
+                  className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-colors shadow-md shadow-amber-500/30 w-full sm:w-auto"
                 >
                   Rozumím
                 </button>
@@ -1976,7 +2118,17 @@ export default function Home() {
                 className="w-full flex items-center gap-3 p-3 sm:p-4 bg-slate-800/50 hover:bg-slate-800 rounded-lg transition-colors text-left"
               >
                 <Icon name="help" className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-300" />
-                <span className="text-sm sm:text-base text-slate-200">Nápověda</span>
+                <span className="text-sm sm:text-base text-slate-200">Pravidla</span>
+              </button>
+              <button
+                onClick={() => {
+                  setShowMenu(false);
+                  setShowImportantInfo(true);
+                }}
+                className="w-full flex items-center gap-3 p-3 sm:p-4 bg-slate-800/50 hover:bg-slate-800 rounded-lg transition-colors text-left"
+              >
+                <span className="text-sm sm:text-base">⚡</span>
+                <span className="text-sm sm:text-base text-slate-200">Důležité info</span>
               </button>
               <button
                 onClick={() => {

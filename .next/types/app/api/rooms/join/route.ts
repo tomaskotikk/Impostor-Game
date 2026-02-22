@@ -1,4 +1,4 @@
-// File: C:\Users\tomas\Desktop\sracky\ImpostorGame\app\api\rooms\join\route.ts
+// File: C:\Users\tomas\Desktop\ImpostorGame\app\api\rooms\join\route.ts
 import * as entry from '../../../../../../app/api/rooms/join/route.js'
 import type { NextRequest } from 'next/server.js'
 
